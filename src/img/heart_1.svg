@@ -1,0 +1,8 @@
+<svg 
+    width="169"
+    height="245"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    >
+    <use xlink:href="svg-cards.svg#heart_1" x="0" y="0"/>
+</svg>
