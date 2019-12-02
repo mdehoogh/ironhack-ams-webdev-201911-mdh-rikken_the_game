@@ -8,6 +8,8 @@
 class PlayerEventListener{
     bidMade(){}
     cardPlayed(){}
+    trumpSuiteChosen(){}
+    partnerSuiteChosen(){}
 }
 
 // the base class of all Player instances
@@ -27,11 +29,35 @@ class Player extends CardHolder{
             throw new Error("Player event listener of wrong type.");
         this._eventListeners=[];
         this._bid=-1; // the last bid of this player
+        // the game being played, and the index within that game
+        this._playerIndex=-1;
+        this._game=null;
         this.addEventListener(playerEventListener);
     }
 
     get bid(){return this._bid;}
     
+    get game(){return this._game;}
+    set game(game){
+        this._game=(this._index>=0&&game&&game instanceof PlayerEventListener?game:null);
+        // sync _index
+        if(this._game){
+            // prepare for playing the game
+            this._bid=-1; // last bid (so far)
+            this._trumpSuite=-1; // choosen trump suite
+            this._partnerSuite=-1; // choose partner suite
+            this._partnerRank=-1; // associated rank (either RANK_ACE or RANK_KING)
+            this.partner=-1; // my partner (once I now who it is)
+            this._cardPlayed=-1; // no card played!!!
+        }else
+            this._index=-1;
+    }
+
+    playsTheGameAtIndex(game,index){
+        this._index=index;
+        this.game=game;
+    }
+
     addCard(card){
         super.addCard(card);
         console.log("Player '"+this+"' received card '"+card+"'.");
@@ -50,11 +76,31 @@ class Player extends CardHolder{
     }
 
     // to signal having made a bid
-    bidMade(){if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.bidMade();});}
-
+    bidMade(){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.bidMade();});
+        if(this._game)this._game.bidMade();
+    }
     // to signal having played a card
-    cardPlayed(){if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});}
-    
+    cardPlayed(){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});
+        if(this._game)this._game.cardPlayed();
+    }
+    // to signal having choosen a trump suite
+    trumpSuiteChosen(){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.trumpSuiteChosen();});
+        if(this._game)this._game.trumpSuiteChosen();
+    }
+    // can be set directly when a better 'rik' variation bid was done!!!!
+    set trumpSuite(trumpSuite){
+        this._trumpSuite=trumpSuite;
+        this.trumpSuiteChosen();
+    }
+    // to signal having chosen a partner
+    partnerSuiteChosen(){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.partnerSuiteChosen();});
+        if(this._game)this._game.partnerSuiteChosen();
+    }
+
     // can be asked to make a bid passing in the highest bid so far
     // NOTE this would be an 'abstract' method in classical OO
     makeABid(playerbids){
@@ -76,17 +122,77 @@ class Player extends CardHolder{
         console.log("Possible bids: ",possibleBidNames);
         this._bid=-1;
         while(this._bid<0){
-            let bidname=prompt("@"+this.name+" What is your bid (options: '"+possibleBidNames.join("', '")+"')?",possibleBidNames[0]);
+            let bidname=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat is your bid (options: '"+possibleBidNames.join("', '")+"')?",possibleBidNames[0]);
             this._bid=BID_NAMES.indexOf(bidname);
+            if(this._bid<0)continue;
+            try{
+                this.bidMade();
+            }catch(error){
+                console.error(error);
+                this._bid=-1;
+            }
         }
-        this.bidMade();
     }
+    chooseTrumpSuite(){
+        // if this player has all aces it's gonna be the suite of a king the person hasn't
+        // also it needs to be an ace of a suite the user has itself (unless you have all other aces)
+        this._trumpSuite=-1;
+        // any of the suites in the cards can be the trump suite!
+        let possibleTrumpSuiteNames=this.getSuites().map((suite)=>{return CARD_SUITES[suite];});
+        while(this._trumpSuite<0){
+            let trumpName=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat suite will be trump (options: '"+possibleTrumpSuiteNames.join("', '")+"')?",possibleTrumpSuiteNames[0]);
+            this._trumpSuite=possibleTrumpSuiteNames.indexOf(trumpName);
+        }
+        this.trumpSuiteChosen();
+    }
+    choosePartnerSuite(){
+        this._partnerSuite=-1;
+        this._partnerRank=RANK_ACE;
+        // get all the aceless suites
+        let suites=this.getSuites();
+        let possiblePartnerSuites=this.getRanklessSuites(this._partnerRank);
+        if(possiblePartnerSuites.length==0){ // player has ALL aces
+            if(suites.length<4){ // but not all suites
+                // all the suits the user does not have are allowed (asking the ace blind!!!)
+                possiblePartnerSuites=[0,1,2,3].filter((suite)=>{return possiblePartnerSuites.indexOf(suite)<0;});
+            }else{ // has all suits, so a king is to be selected!!!
+                // all kings acceptable except for that in the trump color
+                // NOTE if a person also has all the kings we have a situation, we simply continue onward
+                while(1){
+                    this._partnerRank--;
+                    possiblePartnerSuites=this.getRanklessSuites(this._partnerRank);
+                    let trumpSuiteIndex=possiblePartnerSuites.indexOf(this._trumpSuite);
+                    if(trumpSuiteIndex>=0)possiblePartnerSuites.splice(trumpSuiteIndex,1);
+                    if(possiblePartnerSuites.length>0)break;
+                }
+            }
+        }
+        let possiblePartnerSuiteNames=possiblePartnerSuites.map((suite)=>{return CARD_SUITES[suite];});
+
+        while(this._partnerSuite<0){
+            let partnerSuiteName=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat "+CARD_NAMES[this._partnerRank]+" should your partner have (options: '"+possiblePartnerSuiteNames.join("', '")+"')?",possiblePartnerSuiteNames[0]);
+            this._partnerSuite=possiblePartnerSuiteNames.indexOf(partnerSuiteName);
+        }
+        this.partnerSuiteChosen();
+    }
+
+    set partner(partner){this._partner=partner;} // to set the partner once the partner suite/rank card is in the trick!!!!
 
     // can be asked to play a card and add it to the given trick
     // NOTE this would be an 'abstract' method in classical OO
     playACard(trick){
+        // how about using the first letters of the alphabet?
+        possibleCardNames=this._cards.map((card)=>{return card.toString();});
+        while(this._cardPlayedIndex<0){
+            // we're supposed to play a card with suite equal to the first card unless the partner suite/rank is being asked for
+            let cardName=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat card do you want to add to "+trick.getTextRepresentation()+" (options: '"+possibleCardNames.join("', '")+"')?",possibleCardNames[0]);
+            this._cardPlayedIndex=possibleCardNames.indexOf(cardName);
+        }
+        this.cardPlayed();
     }
 
-    toString(){return this.name;}
+    toString(){
+        return this.name;
+    }
 
 }
