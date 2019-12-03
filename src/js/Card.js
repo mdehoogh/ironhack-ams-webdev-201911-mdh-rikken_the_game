@@ -36,3 +36,22 @@ function compareCards(card1,card2){
     if(deltaSuite!=0)return deltaSuite;
     return card1._cardNameIndex-card2._cardNameIndex;
 }
+
+// in a trick the play suite determines what cards are to be played, the trump suite determines what trump is
+function compareCardsWithPlayAndTrumpSuite(card1,card2,playSuite,trumpSuite){
+    // normally with any two regular cards they are never equal in a trick
+    // the cards can be of the same suite 
+    // let's first recompute the suite of both cards and elevate trump cards, and deevaluate non playSuite cards
+    let card1Suite=(card1.suite==trumpSuite?4:(card1.suite!=playSuite?-1:card1.suite));
+    let card2Suite=(card1.suite==trumpSuite?4:(card2.suite!=playSuite?-1:card2.suite));
+    if(card1Suite>=0||card2Suite>=0){ // at least one of the cards is play suite or trump suite
+        // if the suites are the same the highest rank wins
+        if(card1Suite<0)return -1; // if the first card is irrelevant, the first card is lower
+        if(card2Suite<0)return 1; // if the second card is irrelevant, the first card is higher
+        // ASSERT both cards are either play suite or trump suite
+        if(card1Suite==card2Suite)return card1.rank-card2.rank;
+        // ASSERT one card is play suite, the other must be trump suite
+        return(card1Suite==4?1:-1);
+    }
+    return 0; // considered equal that is irrelevant
+}

@@ -40,7 +40,7 @@ class CardHolder{
         return this._cards.filter((card)=>{return card.rank==rank;});
     }
     getNumberOfCardsWithRank(rank){
-        return this.getCardsWithRank().length;
+        return this.getCardsWithRank(rank).length;
     }
     /**
      * returns the ids of the suites present

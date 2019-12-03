@@ -12,6 +12,8 @@ class PlayerEventListener{
     partnerSuiteChosen(){}
 }
 
+const CHOICE_IDS=["a","b","c","d","e","f","g","h","i","j","k","l","m"];
+
 // the base class of all Player instances
 // would be defined abstract in classical OO
 class Player extends CardHolder{
@@ -32,11 +34,29 @@ class Player extends CardHolder{
         // the game being played, and the index within that game
         this._playerIndex=-1;
         this._game=null;
+        this._tricksWon=[]; // the tricks won (in any game)
         this.addEventListener(playerEventListener);
     }
 
+    // getters exposing information to the game (after making a bid, playing a card or choosing trump or partner)
     get bid(){return this._bid;}
-    
+
+    get card(){return this._cards[this._cardPlayIndex];}
+
+    // can be set directly when a better 'rik' variation bid was done!!!!
+    get trumpSuite(){return this._trumpSuite;}
+    set trumpSuite(trumpSuite){
+        this._trumpSuite=trumpSuite;
+        this.trumpSuiteChosen();
+    }
+    // TODO it would be easier to combine these in a card!!!!
+    get partnerSuite(){return this._partnerSuite;}
+    get partnerRank(){return this._partnerRank;}
+    setPartnerSuiteAndRank(){
+
+    }
+    // end of getters/setters used by the game
+
     get game(){return this._game;}
     set game(game){
         this._game=(this._index>=0&&game&&game instanceof PlayerEventListener?game:null);
@@ -48,7 +68,8 @@ class Player extends CardHolder{
             this._partnerSuite=-1; // choose partner suite
             this._partnerRank=-1; // associated rank (either RANK_ACE or RANK_KING)
             this.partner=-1; // my partner (once I now who it is)
-            this._cardPlayed=-1; // no card played!!!
+            this.tricksWon=[]; // storing the tricks won
+            this._cardPlayIndex=-1; // no card played!!!
         }else
             this._index=-1;
     }
@@ -77,7 +98,8 @@ class Player extends CardHolder{
 
     // to signal having made a bid
     bidMade(){
-        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.bidMade();});
+        if(this._eventListeners) // catch any error thrown by event listeners
+            this._eventListeners.forEach((eventListener)=>{try{eventListener.bidMade();}catch(error){}});
         if(this._game)this._game.bidMade();
     }
     // to signal having played a card
@@ -87,18 +109,18 @@ class Player extends CardHolder{
     }
     // to signal having choosen a trump suite
     trumpSuiteChosen(){
-        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.trumpSuiteChosen();});
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.trumpSuiteChosen();}catch(error){};});
         if(this._game)this._game.trumpSuiteChosen();
-    }
-    // can be set directly when a better 'rik' variation bid was done!!!!
-    set trumpSuite(trumpSuite){
-        this._trumpSuite=trumpSuite;
-        this.trumpSuiteChosen();
     }
     // to signal having chosen a partner
     partnerSuiteChosen(){
-        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.partnerSuiteChosen();});
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.partnerSuiteChosen();}catch(error){};});
         if(this._game)this._game.partnerSuiteChosen();
+    }
+
+    // when a game is over, gameOver() should be called so a player can reset some stuff!!!
+    gameOver(){
+        if(this._tricksWon.length>0)this._tricksWon=[];
     }
 
     // can be asked to make a bid passing in the highest bid so far
@@ -181,14 +203,24 @@ class Player extends CardHolder{
     // can be asked to play a card and add it to the given trick
     // NOTE this would be an 'abstract' method in classical OO
     playACard(trick){
+        console.log("Player '"+this.name+"' asked to play a card.");
         // how about using the first letters of the alphabet?
-        possibleCardNames=this._cards.map((card)=>{return card.toString();});
-        while(this._cardPlayedIndex<0){
+        let possibleCardNames=[];
+        for(let cardIndex=0;cardIndex<this.numberOfCards;cardIndex++)
+            possibleCardNames.push(String.cardIndex+1)+": "+this._cards[cardIndex].getTextRepresentation();
+        this._cardPlayIndex=-1;
+        while(this._cardPlayIndex<0){
             // we're supposed to play a card with suite equal to the first card unless the partner suite/rank is being asked for
-            let cardName=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat card do you want to add to "+trick.getTextRepresentation()+" (options: '"+possibleCardNames.join("', '")+"')?",possibleCardNames[0]);
-            this._cardPlayedIndex=possibleCardNames.indexOf(cardName);
+            let cardId=parseInt(prompt("@"+this.name+"\nPress the id of the card you want to add to "+trick.getTextRepresentation()+" (options: '"+possibleCardNames.join("', '")+"')?",""));
+            if(isNaN(cardId))continue;
+            this._cardPlayIndex=cardId-1;
         }
         this.cardPlayed();
+    }
+
+    trickWon(trickIndex){
+        this._tricksWon.push(trickIndex);
+        console.log("Trick #"+trickIndex+" won by '"+this.name+"': "+this._tricksWon+".");
     }
 
     toString(){
