@@ -26,15 +26,15 @@
             <div>
                 <p class='page-title'>Spelers</p>
                 <div class="page-button-group">
-                    <button class="next">Klaar</button>
+                    <button class="new-players">Rikken</button>
                 </div>
             </div>
             <!-- a total of five players can be choosen -->
-            <div class='player-name'>Speler 1:&nbsp;<input type='text' size='30' placeholder='Naam van speler 1'></div>
-            <div class='player-name'>Speler 2:&nbsp;<input type='text' size='30' placeholder='Naam van speler 2'></div>
-            <div class='player-name'>Speler 3:&nbsp;<input type='text' size='30' placeholder='Naam van speler 3'></div>
-            <div class='player-name'>Speler 4:&nbsp;<input type='text' size='30' placeholder='Naam van speler 4'></div>
-            <div class='player-name'>Speler 5:&nbsp;<input type='text' size='30' placeholder='Naam van de extra speler'></div>
+            <div class='player-name'>Speler 1:&nbsp;<input class='player-name-input' type='text' size='30' placeholder='Naam van speler 1'></div>
+            <div class='player-name'>Speler 2:&nbsp;<input class='player-name-input' type='text' size='30' placeholder='Naam van speler 2'></div>
+            <div class='player-name'>Speler 3:&nbsp;<input class='player-name-input' type='text' size='30' placeholder='Naam van speler 3'></div>
+            <div class='player-name'>Speler 4:&nbsp;<input class='player-name-input' type='text' size='30' placeholder='Naam van speler 4'></div>
+            <div class='player-name'>Speler 5:&nbsp;<input class='player-name-input' type='text' size='30' placeholder='Naam van de extra speler'></div>
         </div>
         <div id='page-bidding' class='page'>
             <div>
@@ -44,7 +44,33 @@
                     <button class="next">Klaar</button>
                 </div>
             </div>
-            <!-- -->
+            <!-- current player -->
+            <div>Huidige speler:&nbsp;<span id='bidder'></span></div>
+            <!-- the cards of the current player (made visible on request) -->
+            <div>
+                <button id="toggle-bidder-cards" value="0">Toon kaarten</button>
+                <div id="bidder-cards"></div>
+            </div>
+            <!-- all the possible bids will be buttons one can click -->
+            <div id='bids'>
+                <button id='bid-pas' value='0'>Pas</button>
+                <button id='bid-rik' value='1'>Rik</button>
+                <button id='bid-rik-beter' value='2'>Rik (beter)</button>
+                <button id='bid-negen-alleen' value='3'>Negen alleen</button>
+                <button id='bid-negen-alleen-beter' value='4'>Negen alleen (beter)</button>
+                <button id='bid-pico' value='5'>Pico</button>
+                <button id='bid-tien-alleen' value='6'>Tien alleen</button>
+                <button id='bid-tien-alleen-beter' value='7'>Tien alleen (beter)</button>
+                <button id='bid-elf-alleen' value='8'>Elf alleen</button>
+                <button id='bid-elf-alleen-beter' value='9'>Elf alleen (beter)</button>
+                <button id='bid-misere' value='10'>Mis&egrave;re</button>
+                <button id='bid-twaalf-alleen' value='11'>Twaalf alleen</button>
+                <button id='bid-twaalf-alleen-beter' value='12'>Twaalf alleen (beter)</button>
+                <button id='bid-open-misere' value='13'>Open mis&egrave;re</button>
+                <button id='bid-dertien-alleen' value='14'>Dertien alleen</button>
+                <button id='bid-dertien-alleen-beter' value='15'>Dertien alleen (beter)</button>
+                <button id='bid-open-misere-met-een-praatje' value='16'>Open mis&egrave;re met een praatje</button>
+            </div>
         </div>
         <div id='page-playing' class='page'>
             <div>

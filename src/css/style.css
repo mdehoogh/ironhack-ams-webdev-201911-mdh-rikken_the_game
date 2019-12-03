@@ -55,6 +55,15 @@
 #page-bidding {
     background:black;
 }
+/* show the bids buttons in a row wrapping to the next line if possible */
+.bids{
+    display:flex;
+    flex-wrap:wrap;
+}
+.bids button {
+    margin:10px;
+    padding:5px;
+}
 
 /* playing page */
 #page-playing {

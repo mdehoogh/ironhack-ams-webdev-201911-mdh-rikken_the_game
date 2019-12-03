@@ -3,7 +3,7 @@
  */
 
 // posssible game states
-const IDLE=0,BIDDING=1,INITIATE_PLAYING=2,PLAYING=3;
+const OUT_OF_ORDER=-1,IDLE=0,DEALING=1,BIDDING=2,INITIATE_PLAYING=3,PLAYING=4;
 
 // possible bids
 // NOTE the highest possible bid (troela) is obligatory!!
@@ -13,7 +13,6 @@ const BIDS_ALL_CAN_PLAY=[BID_PICO,BID_OPEN_MISERE,BID_OPEN_MISERE_MET_EEN_PRAATJ
 const BIDS_WITH_PARTNER_IN_HEARTS=[BID_RIK_BETER,BID_TIEN_ALLEEN_BETER,BID_ELF_ALLEEN_BETER,BID_TWAALF_ALLEEN_BETER,BID_DERTIEN_ALLEEN_BETER]; // games with trump played with a partner
 const BID_RANKS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0,-1]; // how I played it (bid pass excluded (always rank 0))
 
-/*
 class RikkenTheGameEventListener{
     stateChanged(rikkenTheGame){
         if(new.target===RikkenTheGameEventListener)
@@ -24,7 +23,7 @@ class RikkenTheGameEventListener{
             throw new Error("You're supposed to create a subclass of RikkenTheGameEventListener!");
     }
 }
-*/
+
 class EmulatedPlayer extends Player{
 
     constructor(name){
@@ -66,13 +65,29 @@ class RikkenTheGame extends PlayerEventListener{
         return "Me";
     }
 
-    constructor(players,stateChangeListener){
+    initializeTheGame(){
+        // this means moving the game to the initialize state
+        // it's easiest to simply create a new deck of cards each time (instead of repossessing the cards)
+        this.deckOfCards=new DeckOfCards();
+        // the successor of the current dealer is to deal next
+        this.dealer=(this.dealer+1)%this.numberOfPlayers;
+        this._player=0; // the current player
+        this._trumpSuite=-1; // the trump suite
+        this._partnerSuite=-1;this._partnerRank=-1; // the card of the partner (for games with trump and a partner)
+        this._trick=null; // the current trick
+        this._tricks=[]; // the tricks played
+        this._highestBidPlayers=[]; // all the players that made the highest bid (and are playing it)
+        this._partnerCardPlayedStatus=-1; // whether to check for the partner card of not (-1: not at all, 0=still not played, 1=played)
+        this._askingForThePartnerCardBlind=false; // when a user asks for the partner card blind
+    }
+
+    constructor(players,eventListener){
 
         super();
 
-        if(stateChangeListener&&!(stateChangeListener instanceof RikkenTheGameStateListener))
-            throw new Error("Invalid state change listener defined.");
-        this._stateChangeListener=stateChangeListener;
+        if(eventListener&&!(eventListener instanceof RikkenTheGameEventListener))
+            throw new Error("Invalid event listener defined.");
+        this._eventListener=eventListener;
 
         if(!players||!Array.isArray(players)||players.length<4)
             throw new Error("Not enough players!");
@@ -86,7 +101,7 @@ class RikkenTheGame extends PlayerEventListener{
                     throw new Error("Player of wrong type.");
                 this._players.unshift(players[player]);
             }else
-                this._players.unshift(new EmulatedPlayer(MY_NAME));
+                this._players.unshift(new EmulatedPlayer(RikkenTheGame.MY_NAME));
         }
         // register the game with each of the players and initialie the player bids as well
         this._playersBids=[];
@@ -99,34 +114,57 @@ class RikkenTheGame extends PlayerEventListener{
         }
         if(this._playersBids.length<4)throw new Error("Failed to initialize the player bids.");
 
-        // we need a deck of cards
-        this.deckOfCards=new DeckOfCards();
-        // appoint the first player as dealer
-        this.dealer=0; // the first dealer would be the first player
-        this.handsPlayed=0; // keep track of the number of 'slagen' (13 in total)
-        this._player=0; // the current player
-        this._trumpSuite=-1; // the trump suite
-        this._partnerSuite=-1;this._partnerRank=-1; // the card of the partner
-        this._trick=null; // the current trick
-        this._tricks=[]; // the tricks played
-        this._highestBidPlayers=[]; // all the players that made the highest bid (and are playing it)
-        this._partnerCardPlayedStatus=-1; // whether to check for the partner card of not (-1: not at all, 0=still not played, 1=played)
-        this._state=IDLE; // starting in the idle state
+        this.dealer=-1;
+
+        this._state=OUT_OF_ORDER;
+
+        // move the state to the IDLE state!!!!
+        this.state=IDLE;
+
     }
 
     get numberOfPlayers(){return this._players.length;}
 
+    // after dealing the cards, the game can be played
+    startTheGame(){
+        this.checkForTroela();
+        // if a player has 3 aces the play to play is 'troela' and therefore the accepted bid
+        if(this.fourthAcePlayer>=0){ // set the game to play to 'troela'
+            this.bid=BID_TROELA;
+            this.state=INITIATE_PLAYING;
+        }else
+            this.state=BIDDING;
+    }
+
+    // public methods
+    getPossibleBids(){
+        let possibleBids=[BID_PAS]; // player can always pass!!
+        // this._highestBid contains the highest bid so far
+        let possibleBid=this._highestBid+(BIDS_ALL_CAN_PLAY.indexOf(this._highestBid)<0);
+        while(possibleBid<BID_TROELA){possibleBids.push(possibleBid);possibleBid++;}
+        return possibleBids;
+    }
+
+    // getters
+    get state(){return this._state;} 
     set state(newstate){
         this._state=newstate;
-        // if there's a state change listener, play 'online', otherwise play through the console
+         // if there's a state change listener, play 'online', otherwise play through the console
         switch(this._state){
+            case IDLE:
+                this.initializeTheGame();
+                break;
+            case DEALING:
+                this.deckOfCards.shuffle(); // shuffle the cards again
+                if(this.dealCards())this.startTheGame();else console.error("Failed to deal the cards.");
+                break;
             case BIDDING:
                 {
                     this._player=(this.dealer+1)%this.numberOfPlayers;
                     this._highestBid=0;
                     this._highestBidPlayers=[]; // no highest bid players yet
                     for(let player=0;player<this._playersBids.length;player++)this._playersBids[player]=[]; // no bids yet
-                    this._players[this._player].makeABid(this._playersBids);
+                    this._players[this._player].makeABid(this._playersBids,this.getPossibleBids());
                 }
                 break;
             case INITIATE_PLAYING:
@@ -170,7 +208,8 @@ class RikkenTheGame extends PlayerEventListener{
                 }
                 break;
         }
-    }
+        if(this._eventListener)this._eventListener.stateChanged(this);
+   }
 
     logBids(){
         console.log("Bids after the bid by player "+this._players[this._player].name+":");
@@ -366,24 +405,6 @@ class RikkenTheGame extends PlayerEventListener{
         // and start expecting cards
         this.state=PLAYING;
     }
-    */
-    // after dealing the cards, the game can be played
-    startTheGame(){
-        this.checkForTroela();
-        // if a player has 3 aces the play to play is 'troela' and therefore the accepted bid
-        if(this.fourthAcePlayer>=0){ // set the game to play to 'troela'
-            this.bid=BID_TROELA;
-            this.state=INITIATE_PLAYING;
-        }else
-            this.state=BIDDING;
-    }
-
-    // public methods
-    // getters
-    get state(){return this._state;}
-    get bid(){return this._bid;} // the bid so far
-    get player(){return this._player;}
-
     // to receive a new bid (by the current player), assign to bid 
     set bid(newbid){
         if(newbid!=BID_PAS){
@@ -395,10 +416,14 @@ class RikkenTheGame extends PlayerEventListener{
             this._passbidcount++;
         }
     }
+    */
+
+    get bid(){return this._bid;} // the bid so far
+    get player(){return this._player;}
 
     start(){
-        this.deckOfCards.shuffle(); // shuffle the cards again
-        if(this.dealCards())this.startTheGame();else console.error("Failed to deal the cards.");
+        if(this._state!==IDLE)this.state=IDLE; // if not in the IDLE state go there first
+        if(this._state===IDLE)this.state=DEALING; // only from the IDLE state can we start dealing
     }
 
 }
