@@ -142,6 +142,7 @@ class RikkenTheGame extends PlayerEventListener{
         // this._highestBid contains the highest bid so far
         let possibleBid=this._highestBid+(BIDS_ALL_CAN_PLAY.indexOf(this._highestBid)<0);
         while(possibleBid<BID_TROELA){possibleBids.push(possibleBid);possibleBid++;}
+        console.log("Possible bids equal to or higher than "+this._highestBid+": ",possibleBids);
         return possibleBids;
     }
 
@@ -272,7 +273,7 @@ class RikkenTheGame extends PlayerEventListener{
             // ask that player for a bid
             this._player=player;
             // NOTE could have done this by: this.state=BIDDING;
-            this._players[this._player].makeABid(this._playersBids);    
+            this._players[this._player].makeABid(this._playersBids,this.getPossibleBids());    
         }
     }
     trumpSuiteChosen(){

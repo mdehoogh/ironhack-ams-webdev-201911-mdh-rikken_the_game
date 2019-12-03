@@ -5,7 +5,7 @@ function clearInfo(){
     document.getElementById('info').innerHTML="";
 }
 
-const PAGES=["page-setup-rules","page-setup-game","page-bidding","page-playing"];
+const PAGES=["page-setup-rules","page-setup-game","page-bidding","page-initiate-playing","page-playing"];
 
 var currentPage; // the current page
 
@@ -13,16 +13,19 @@ var rikkenTheGame=null; // the game (engine) in charge of managing playing the g
 
 var currentPlayer=null;
 function bidButtonClicked(event){
-    currentPlayer.setBid(event.currentTarget.value); // the value of the button is the made bid
+    let bid=parseInt(event.currentTarget.id.substring(4));
+    console.log("Gekozen bod: ",bid);
+    currentPlayer.setBid(bid); // the value of the button is the made bid
 }
 var bidderCardsElement=document.getElementById("bidder-cards");
 function toggleBidderCards(event){
-    event.currentTarget.value=1-event.currentTarget.value;
-    if(event.currentTarget.value){
+    if(event.currentTarget.value.length>0){
         event.currentTarget.innerHTML="Verberg kaarten";
-        bidderCardsElement.innerHTML=currentPlayer.getTextRepresentation(true);
+        bidderCardsElement.innerHTML=event.currentTarget.value;
+        event.currentTarget.value="";
     }else{
         event.currentTarget.innerHTML="Toon kaarten";
+        event.currentTarget.value=bidderCardsElement.innerHTML;
         bidderCardsElement.innerHTML="";
     }
 }
@@ -33,14 +36,15 @@ class OnlinePlayer extends Player{
     // make a bid is called with 
     makeABid(playerBids,possibleBids){
         currentPlayer=this; // remember the current player
-        console.log("Player '"+this.name+"' should make a bid!");
+        console.log("Possible bids player '"+this.name+"' could make: ",possibleBids);
+        setInfo("Maak een keuze uit een van de mogelijke biedingen.");
         document.getElementById("bidder").innerHTML=this.name;
         bidderCardsElement.innerHTML="";
-        document.getElementById("toggle-bidder-cards").value=0;
+        document.getElementById("toggle-bidder-cards").value=this.getTextRepresentation("<br>");
         document.getElementById("toggle-bidder-cards").innerHTML="Toon kaarten";
         // only show the buttons 
-        for(let bidButton of document.getElementById("bids").getElementsByTagName("button")){
-            bidButton.style.visibility=(possibleBids.indexOf(bidButton.value)>=0?"visible":"hidden");
+        for(let bidButton of document.getElementById("bids").querySelectorAll("input[type=button]")){
+            bidButton.style.display=(possibleBids.indexOf(parseInt(bidButton.id.substring(4)))>=0?"initial":"none");
         }
     }
     playACard(){
@@ -60,11 +64,20 @@ class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
             case BIDDING:
                 setPage("page-bidding");
                 break;
+            case INITIATE_PLAYING:
+                setPage("page-initiate-playing");
+                break;
             case PLAYING:
                 setPage("page-playing");
                 break;
         }
         console.log("ONLINE >>> The state of rikkenTheGame changed to '"+rikkenTheGame.state+"'.");
+    }
+    chooseTrumpSuite(){
+
+    }
+    choosePartnerSuite(){
+
     }
 }
 var onlineRikkenTheGameEventListener=new OnlineRikkenTheGameEventListener();
@@ -160,7 +173,7 @@ window.onload=function(){
         };
     };
     // attach an onclick event handler for all bid buttons
-    for(let bidButton of document.getElementById("bids").getElementsByTagName("button"))
+    for(let bidButton of document.getElementById("bids").querySelectorAll("input[type=button]"))
         bidButton.onclick=bidButtonClicked;
     document.getElementById("toggle-bidder-cards").onclick=toggleBidderCards;
     this.setPage(PAGES[0]);

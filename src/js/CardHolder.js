@@ -78,10 +78,10 @@ class CardHolder{
     /**
      * can expose a text represention
      */
-    getTextRepresentation(sort){
+    getTextRepresentation(suiteSeparator){
         console.log("Number of cards to represent: "+this._cards.length+".");
         // how about sorting???????? that would be nice
-        if(sort&&!this._sorted){
+        if(suiteSeparator&&typeof suiteSeparator==="string"&&!this._sorted){
             this._cards.sort(compareCards);
             this._sorted=true;
         }
@@ -93,7 +93,7 @@ class CardHolder{
             let card=this.getFirstCard();
             textRepresentation=card.getTextRepresentation();
             for(let cardIndex=1;cardIndex<this.numberOfCards;cardIndex++){
-                textRepresentation+=(card.suite!=this._cards[cardIndex].suite?" | ":" ");
+                textRepresentation+=(card.suite!=this._cards[cardIndex].suite?suiteSeparator:" ");
                 textRepresentation+=this._cards[cardIndex].getTextRepresentation();
                 card=this._cards[cardIndex];
             }
