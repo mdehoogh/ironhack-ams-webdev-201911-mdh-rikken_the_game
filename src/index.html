@@ -14,9 +14,17 @@
     </div>
     <div class='pages'>
         <!-- we have different 'pages' depending on where we are in the game -->
-        <div id='page-setup-rules' class='page'>
+        <div id='page-rules' class='page'>
             <div>
                 <p class='page-title'>Spelregels</p>
+                <div class="page-button-group">
+                    <button class="next">Klaar</button>
+                </div>
+            </div>
+        </div>
+        <div id='page-settings' class='page'>
+            <div>
+                <p class='page-title'>Instellingen</p>
                 <div class="page-button-group">
                     <button class="next">Klaar</button>
                 </div>
@@ -45,14 +53,9 @@
                 </div>
             </div>
             <!-- current player -->
-            <div>Huidige speler:&nbsp;<span id='bidder'></span></div>
-            <!-- the cards of the current player (made visible on request) -->
-            <div>
-                <button id="toggle-bidder-cards" value="0">Toon kaarten</button>
-                <div id="bidder-cards"></div>
-            </div>
-            <!-- all the possible bids will be buttons one can click -->
-            <div id='bids'>
+            <div class='prompt'><span id='bidder'></span>, wat wil je spelen?</div>
+             <!-- all the possible bids will be buttons one can click -->
+            <div id='bid'>
                 <input type='button' id='bid-0' value='Pas'</input>
                 <input type='button' id='bid-1' value='Rik'</input>
                 <input type='button' id='bid-2' value='Rik (beter)'</input>
@@ -71,7 +74,30 @@
                 <input type='button' id='bid-15' value='Dertien alleen (beter)'</input>
                 <input type='button' id='bid-16' value='Open mis&egrave;re met een praatje'</input>
             </div>
+            <!-- the cards of the current player (made visible on request) -->
+            <div>
+                <button id="toggle-bidder-cards" value="0">Toon kaarten</button>
+            <div id="bidder-cards"></div>
+            <!-- show the the bids so far by the other players -->
+            <div class='bids'>
+                <p>Geboden tot nu toe:</p>
+                <table id='bids-table'>
+                    <thead>
+                        <tr>
+                            <th>Speler</th>
+                            <th>Geboden</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td></td><td></td></tr>
+                        <tr><td></td><td></td></tr>
+                        <tr><td></td><td></td></tr>
+                        <tr><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+    </div>
         <div id='page-initiate-playing' class='page'>
             <div>
                 <p class='page-title'>Troefkleur en/of partner aas/koning</p>

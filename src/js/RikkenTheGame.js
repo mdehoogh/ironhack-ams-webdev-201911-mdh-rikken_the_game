@@ -124,7 +124,8 @@ class RikkenTheGame extends PlayerEventListener{
     }
 
     get numberOfPlayers(){return this._players.length;}
-
+    getPlayerName(player){return(player>0&&player<this.numberOfPlayers?this._players[player].name:"");}
+    
     // after dealing the cards, the game can be played
     startTheGame(){
         this.checkForTroela();

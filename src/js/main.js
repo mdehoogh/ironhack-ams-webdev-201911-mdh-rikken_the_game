@@ -1,3 +1,4 @@
+
 function setInfo(info){
     document.getElementById('info').innerHTML=info;
 }
@@ -5,7 +6,9 @@ function clearInfo(){
     document.getElementById('info').innerHTML="";
 }
 
-const PAGES=["page-setup-rules","page-setup-game","page-bidding","page-initiate-playing","page-playing"];
+String.prototype.capitalize=function(){return(this.length>0?this[0].toUpperCase()+this.substring(1):"");}
+
+const PAGES=["page-rules","page-settings","page-setup-game","page-bidding","page-initiate-playing","page-playing"];
 
 var currentPage; // the current page
 
@@ -34,17 +37,23 @@ class OnlinePlayer extends Player{
         super(name);
     }
     // make a bid is called with 
-    makeABid(playerBids,possibleBids){
+    makeABid(playersBids,possibleBids){
         currentPlayer=this; // remember the current player
         console.log("Possible bids player '"+this.name+"' could make: ",possibleBids);
-        setInfo("Maak een keuze uit een van de mogelijke biedingen.");
+        //setInfo("Maak een keuze uit een van de mogelijke biedingen.");
         document.getElementById("bidder").innerHTML=this.name;
         bidderCardsElement.innerHTML="";
         document.getElementById("toggle-bidder-cards").value=this.getTextRepresentation("<br>");
         document.getElementById("toggle-bidder-cards").innerHTML="Toon kaarten";
-        // only show the buttons 
-        for(let bidButton of document.getElementById("bids").querySelectorAll("input[type=button]")){
+        // only show the buttons
+        for(let bidButton of document.getElementById("bid").querySelectorAll("input[type=button]")){
             bidButton.style.display=(possibleBids.indexOf(parseInt(bidButton.id.substring(4)))>=0?"initial":"none");
+        }
+        // show the player bids in the body of the bids table
+        let bidTable=document.getElementById("bids-table").querySelector("tbody");
+        for(let bid=0;bid<playersBids.length;bid++){
+            bidTable.children[bid].children[1].innerHTML=rikkenTheGame.getPlayerName(bid).capitalize();
+            bidTable.children[bid].children[1].innerHTML=playersBids[bid].join(" ");
         }
     }
     playACard(){
@@ -101,16 +110,26 @@ function setPage(newPage){
                         break;
                     case 1:
                         {
-                            setInfo("Vul de namen van de spelers in. Een spelernaam is voldoende.");
+                            setInfo("Kies de speelwijze.");
                         }
                         break;
                     case 2:
+                        {
+                            setInfo("Vul de namen van de spelers in. Een spelernaam is voldoende.");
+                        }
+                        break;
+                    case 3:
                         {
                             setInfo("Wacht om de beurt op een verzoek tot het doen van een bod.");
                             // did the players change? then we create a new rikkenTheGame
                         }
                     break;
-                    case 3:
+                    case 4:
+                        {
+                            setInfo("Wacht op het verzoek tot het opgeven van de troefkleur en/of de aas/heer.");
+                        }
+                        break;
+                    case 5:
                         {
                             setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");
                         }
@@ -173,7 +192,7 @@ window.onload=function(){
         };
     };
     // attach an onclick event handler for all bid buttons
-    for(let bidButton of document.getElementById("bids").querySelectorAll("input[type=button]"))
+    for(let bidButton of document.getElementById("bid").querySelectorAll("input[type=button]"))
         bidButton.onclick=bidButtonClicked;
     document.getElementById("toggle-bidder-cards").onclick=toggleBidderCards;
     this.setPage(PAGES[0]);
