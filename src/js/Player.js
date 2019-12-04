@@ -41,7 +41,7 @@ class Player extends CardHolder{
     // getters exposing information to the game (after making a bid, playing a card or choosing trump or partner)
     get bid(){return this._bid;}
 
-    get card(){return this._cards[this._cardPlayIndex];}
+    //////////////get card(){return this._cards[this._cardPlayIndex];}
 
     // can be set directly when a better 'rik' variation bid was done!!!!
     get trumpSuite(){return this._trumpSuite;}
@@ -52,6 +52,7 @@ class Player extends CardHolder{
     // TODO it would be easier to combine these in a card!!!!
     get partnerSuite(){return this._partnerSuite;}
     get partnerRank(){return this._partnerRank;}
+
     setPartnerSuiteAndRank(){
 
     }
@@ -69,7 +70,7 @@ class Player extends CardHolder{
             this._partnerRank=-1; // associated rank (either RANK_ACE or RANK_KING)
             this.partner=-1; // my partner (once I now who it is)
             this.tricksWon=[]; // storing the tricks won
-            this._cardPlayIndex=-1; // no card played!!!
+            this._card=null; // no card played yet
         }else
             this._index=-1;
     }
@@ -88,6 +89,12 @@ class Player extends CardHolder{
         return this.cards.filter((card)=>{return(card.suite==cardSuite);});
     }
 
+    _getSuiteCards(){
+        let suiteCards=[[],[],[],[]];
+        this._cards.forEach((card)=>{suiteCards[card.suite].push(card);});
+        return suiteCards;
+    }
+
     // can be asked to play a card of a given card suite (or any card if cardSuite is undefined)
     contributeToTrick(trick) {
         if(this._cards.length==0)throw new Error("No cards left to play!");
@@ -101,7 +108,7 @@ class Player extends CardHolder{
         if(this._eventListeners) // catch any error thrown by event listeners
             this._eventListeners.forEach((eventListener)=>{try{eventListener.bidMade();}catch(error){}});
         if(this._game)this._game.bidMade();
-    }
+    }    
     // TODO a bid setter will allow subclasses to pass a bid by setting the property
     setBid(bid){
         this._bid=bid;
@@ -109,10 +116,18 @@ class Player extends CardHolder{
     }
 
     // to signal having played a card
+    get card(){return this._card;}
+
     cardPlayed(){
         if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});
         if(this._game)this._game.cardPlayed();
     }
+    // TODO a bid setter will allow subclasses to pass a bid by setting the property
+    setCard(card){
+        this._card=card;
+        this.cardPlayed();
+    }
+
     // to signal having choosen a trump suite
     trumpSuiteChosen(){
         if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.trumpSuiteChosen();}catch(error){};});
@@ -161,7 +176,7 @@ class Player extends CardHolder{
             }
         }
     }
-    chooseTrumpSuite(){
+    chooseTrumpSuite(suites){
         // if this player has all aces it's gonna be the suite of a king the person hasn't
         // also it needs to be an ace of a suite the user has itself (unless you have all other aces)
         this._trumpSuite=-1;
@@ -173,7 +188,11 @@ class Player extends CardHolder{
         }
         this.trumpSuiteChosen();
     }
-    choosePartnerSuite(){
+    /**
+     * asks for the suite of the partner card of the given rank
+     * @param {*} partnerRankName 
+     */
+    choosePartnerSuite(partnerRankName){
         this._partnerSuite=-1;
         this._partnerRank=RANK_ACE;
         // get all the aceless suites
@@ -214,14 +233,14 @@ class Player extends CardHolder{
         let possibleCardNames=[];
         for(let cardIndex=0;cardIndex<this.numberOfCards;cardIndex++)
             possibleCardNames.push(String.cardIndex+1)+": "+this._cards[cardIndex].getTextRepresentation();
-        this._cardPlayIndex=-1;
-        while(this._cardPlayIndex<0){
+        let cardPlayIndex=-1;
+        while(cardPlayIndex<0){
             // we're supposed to play a card with suite equal to the first card unless the partner suite/rank is being asked for
             let cardId=parseInt(prompt("@"+this.name+"\nPress the id of the card you want to add to "+trick.getTextRepresentation()+" (options: '"+possibleCardNames.join("', '")+"')?",""));
             if(isNaN(cardId))continue;
-            this._cardPlayIndex=cardId-1;
+            cardPlayIndex=cardId-1;
         }
-        this.cardPlayed();
+        this.card=this._cards[cardPlayIndex];
     }
 
     trickWon(trickIndex){

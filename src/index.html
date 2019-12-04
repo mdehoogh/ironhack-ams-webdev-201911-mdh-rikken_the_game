@@ -18,7 +18,7 @@
             <div>
                 <p class='page-title'>Spelregels</p>
                 <div class="page-button-group">
-                    <button class="next">Klaar</button>
+                    <input type='button' class="next" value='Klaar'>
                 </div>
             </div>
         </div>
@@ -26,7 +26,7 @@
             <div>
                 <p class='page-title'>Instellingen</p>
                 <div class="page-button-group">
-                    <button class="next">Klaar</button>
+                    <input type='button' class="next" value='Klaar'>
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
             <div>
                 <p class='page-title'>Spelers</p>
                 <div class="page-button-group">
-                    <button class="new-players">Rikken</button>
+                    <input type='button' class="new-players" value='Rikken maar'>
                 </div>
             </div>
             <!-- a total of five players can be choosen -->
@@ -48,79 +48,183 @@
             <div>
                 <p class='page-title'>Bieden</p>
                 <div class="page-button-group">
-                    <button class="cancel">Afbreken</button>
-                    <button class="next">Klaar</button>
+                    <input type='button' class="cancel" value='Afbreken'>
+                    <input type='button' class="next" value='Klaar'>
                 </div>
             </div>
             <!-- current player -->
             <div class='prompt'><span id='bidder'></span>, wat wil je spelen?</div>
              <!-- all the possible bids will be buttons one can click -->
-            <div id='bid'>
-                <input type='button' id='bid-0' value='Pas'</input>
-                <input type='button' id='bid-1' value='Rik'</input>
-                <input type='button' id='bid-2' value='Rik (beter)'</input>
-                <input type='button' id='bid-3' value='Negen alleen'</input>
-                <input type='button' id='bid-4' value='Negen alleen (beter)'</input>
-                <input type='button' id='bid-5' value='Pico'</input>
-                <input type='button' id='bid-6' value='Tien alleen'</input>
-                <input type='button' id='bid-7' value='Tien alleen (beter)'</input>
-                <input type='button' id='bid-8' value='Elf alleen'</input>
-                <input type='button' id='bid-9' value='Elf alleen (beter)'</input>
-                <input type='button' id='bid-10' value='Mis&egrave;re'</input>
-                <input type='button' id='bid-11' value='Twaalf alleen'</input>
-                <input type='button' id='bid-12' value='Twaalf alleen (beter)'</input>
-                <input type='button' id='bid-13' value='Open mis&egrave;re'</input>
-                <input type='button' id='bid-14' value='Dertien alleen'</input>
-                <input type='button' id='bid-15' value='Dertien alleen (beter)'</input>
-                <input type='button' id='bid-16' value='Open mis&egrave;re met een praatje'</input>
+            <div class='bid-buttons'>
+                <input type='button' data-bid='0' class='bid' value='Pas'>
+                <input type='button' data-bid='1' class='bid' value='Rik'>
+                <input type='button' data-bid='2' class='bid' value='Rik (beter)'>
+                <input type='button' data-bid='3' class='bid' value='Negen alleen'>
+                <input type='button' data-bid='4' class='bid' value='Negen alleen (beter)'>
+                <input type='button' data-bid='5' class='bid' value='Pico'>
+                <input type='button' data-bid='6' class='bid' value='Tien alleen'>
+                <input type='button' data-bid='7' class='bid' value='Tien alleen (beter)'>
+                <input type='button' data-bid='8' class='bid' value='Elf alleen'>
+                <input type='button' data-bid='9' class='bid' value='Elf alleen (beter)'>
+                <input type='button' data-bid='10' class='bid' value='Mis&egrave;re'>
+                <input type='button' data-bid='11' class='bid' value='Twaalf alleen'>
+                <input type='button' data-bid='12' class='bid' value='Twaalf alleen (beter)'>
+                <input type='button' data-bid='13' class='bid' value='Open mis&egrave;re'>
+                <input type='button' data-bid='14' class='bid' value='Dertien alleen'>
+                <input type='button' data-bid='15' class='bid' value='Dertien alleen (beter)'>
+                <input type='button' data-bid='16' class='bid' value='Open mis&egrave;re met een praatje'>
             </div>
             <!-- the cards of the current player (made visible on request) -->
             <div>
                 <button id="toggle-bidder-cards" value="0">Toon kaarten</button>
-            <div id="bidder-cards"></div>
+            </div>
+            <div id="bidder-cards">
+                <span class='suitecards' data-suite-card='0'></span>&nbsp;
+                <span class='suitecards' data-suite-card='1'></span>&nbsp;
+                <span class='suitecards' data-suite-card='2'></span>&nbsp;
+                <span class='suitecards' data-suite-card='3'></span>
+            </div>
             <!-- show the the bids so far by the other players -->
             <div class='bids'>
-                <p>Geboden tot nu toe:</p>
-                <table id='bids-table'>
-                    <thead>
-                        <tr>
-                            <th>Speler</th>
-                            <th>Geboden</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td></td><td></td></tr>
-                        <tr><td></td><td></td></tr>
-                        <tr><td></td><td></td></tr>
-                        <tr><td></td><td></td></tr>
-                    </tbody>
-                </table>
+                <div>Geboden tot nu toe:</div>
+                <div>
+                    <table id='bids-table'>
+                        <thead>
+                            <tr>
+                                <th>Speler</th>
+                                <!-- headers to show the bid index -->
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- maximum number of bids equal the number of bids divided by two players i.e. 8) -->
+                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-        <div id='page-initiate-playing' class='page'>
+        <div id='page-trump-choosing' class='page'>
             <div>
-                <p class='page-title'>Troefkleur en/of partner aas/koning</p>
+                <p class='page-title'>Troefkleur kiezen</p>
                 <div class="page-button-group">
                     <button class="cancel">Afbreken</button>
-                    <button class="next">Klaar</button>
                 </div>
             </div>
             <!-- ask for the trump suite comes first -->
             <div>Wat is de troefkleur?</div>
-            <div>Welke aas/heer vraag je mee?</div>
+            <!-- four suites to choose from -->
+            <div id='trump-suite-buttons'>
+                <input type='button' data-suite='0' class='suite trump' value='Ruiten'>
+                <input type='button' data-suite='1' class='suite trump' value='Klaveren'>
+                <input type='button' data-suite='2' class='suite trump' value='Harten'>
+                <input type='button' data-suite='3' class='suite trump' value='Schoppen'>
+            </div>
+        </div>
+        <div id='page-partner-choosing' class='page'>
+            <div>
+                <p class='page-title'>Aas of heer meevragen</p>
+                <div class="page-button-group">
+                    <input type='button' class="cancel" value='Afbreken'>
+                </div>
+            </div>
+            <!-- ask for the trump suite comes first -->
+            <div>Welke <span id='partner-rank'></span> vraag je mee?</div>
+            <!-- at most eight cards to choose from -->
+            <!-- but either an ace or a king (never both) -->
+            <div id='partner-suite-buttons'>
+                <input type='button' data-suite='0' class='suite partner' value='Ruiten'>
+                <input type='button' data-suite='1' class='suite partner' value='Klaveren'>
+                <input type='button' data-suite='2' class='suite partner' value='Harten'>
+                <input type='button' data-suite='3' class='suite partner' value='Schoppen'>
+            </div>
+        </div>
+        <div id='page-play-reporting' class='page'>
+            <div>
+                <p class='page-title'>Te spelen</p>
+                <div class="page-button-group">
+                    <input type='button' class="cancel" value='Afbreken'>
+                    <input type='button' class="next" value='Gelezen'>
+                </div>
+            </div>
         </div>
         <div id='page-playing' class='page'>
             <div>
                 <p class='page-title'>Spelen</p>
                 <div class="page-button-group">
-                    <button class="cancel">Afbreken</button>
-                    <button class="next">Klaar</button>
+                    <input type='button' class="cancel" value='Afbreken'>
+                    <input type='button' class="next" value='Klaar'>
                 </div>
+            </div>
+            <div>
+                <!-- a player can ask for the ace blind -->
+                <input type="checkbox" id='ask-partner-blind' value='De aas/heer blind opvragen'>
+            </div>
+            <!-- showing the current trick (so far) -->
+            <div class='trick'>
+                <p>De huidige slag:</p>
+                &nbsp;<span class='trick' data-trick-index='0'></span>
+                &nbsp;<span class='trick' data-trick-index='1'></span>
+                &nbsp;<span class='trick' data-trick-index='2'></span>
+                &nbsp;<span class='trick' data-trick-index='3'></span>
+            </div>
+            <!-- showing the cards of the current player as buttons-->
+            <div class='card-buttons'>
+                <input type='button' class='card' data-card-index='0' value='0'>
+                <input type='button' class='card' data-card-index='1' value='1'>
+                <input type='button' class='card' data-card-index='2' value='2'>
+                <input type='button' class='card' data-card-index='3' value='3'>
+                <input type='button' class='card' data-card-index='4' value='4'>
+                <input type='button' class='card' data-card-index='5' value='5'>
+                <input type='button' class='card' data-card-index='6' value='6'>
+                <input type='button' class='card' data-card-index='7' value='7'>
+                <input type='button' class='card' data-card-index='8' value='8'>
+                <input type='button' class='card' data-card-index='9' value='9'>
+                <input type='button' class='card' data-card-index='10' value='10'>
+                <input type='button' class='card' data-card-index='11' value='11'>
+                <input type='button' class='card' data-card-index='12' value='12'>
+                <input type='button' class='card' data-card-index='13' value='13'>
+            </div>
+        </div>
+        <div id='page-finished' class='page'>
+            <div>
+                <p class='page-title'>Spelresultaat</p>
+                <div class="page-button-group">
+                    <input type='button' class="next" value='Nog eens'>
+                </div>
+            </div>
+            <!-- information on the result of the game -->
+            <!-- the number of tricks won by each of the players e.g. -->
+            <!-- which is a list of 13 tricks -->
+            <div class='tricks'>
+                <ol>
+                    <li>Trick 1</li>
+                    <li>Trick 2</li>
+                    <li>Trick 3</li>
+                    <li>Trick 4</li>
+                    <li>Trick 5</li>
+                    <li>Trick 6</li>
+                    <li>Trick 7</li>
+                    <li>Trick 8</li>
+                    <li>Trick 9</li>
+                    <li>Trick 10</li>
+                    <li>Trick 11</li>
+                    <li>Trick 12</li>
+                    <li>Trick 13</li>
+                </ol>
             </div>
         </div>
     </div>
-
     <!-- scripts -->
     <script src="js/Card.js"></script>
     <script src="js/CardHolder.js"></script>

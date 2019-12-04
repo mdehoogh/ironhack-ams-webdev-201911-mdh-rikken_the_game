@@ -3,8 +3,11 @@
  */
 class CardHolder{
 
-    constructor(){
+    // MDH@04DEC2019: allowing now to construct fixed size card holders (like Trick)
+    constructor(numberOfCards=0){
         this._cards=[];
+        this._numberOfCards=numberOfCards;
+        while(--numberOfCards>=0)this._cards.push(null);
         this._sorted=false;
     }
 
@@ -33,6 +36,19 @@ class CardHolder{
             console.log("\tCard collection: "+this.getTextRepresentation()+".");
         }else
             console.error("Failed to add card "+card+" to "+this.toString()+" (delta number of cards: "+(this.numberOfCards-numberOfCardsNow)+").");
+    }
+    // replace a card at a given index (as used in Trick)
+    setCardAtIndex(card,index){
+        if(index<0||index>=this.numberOfCards)throw new Error("Can't replace card #"+String(index+1)+".");
+        let cardAtIndex=this._cards[index];
+        if(cardAtIndex){cardAtIndex._holder=null;this._cards[index]=null;}
+        if(card){
+            // if 'contained' in another card holder remove it from there!!!
+            try{
+                if(card._holder)card._holder.removeCard(card);
+                if(!card._holder){this._cards[index]=card;card._holder=this;}    
+            }catch(error){}
+        }
     }
     // poll the card collection
     get numberOfCards(){return this._cards.length;}

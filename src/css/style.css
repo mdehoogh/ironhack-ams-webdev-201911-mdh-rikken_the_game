@@ -2,6 +2,7 @@
 */
 .body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background: gray;
 }
 
 #info {
@@ -12,11 +13,19 @@
 }
 
 .prompt {
-    font-size:1.5em;
+    font-size:2em;
+}
+
+input[type=button] {
+    font-size:2.5em;
 }
 
 .pages {
-    color:white;
+    color:#333;
+}
+
+.trick {
+    height:100px;
 }
 
 .page {
@@ -26,6 +35,7 @@
     y:0;
     width:100%;
 }
+
 /* page-button-groups to show in the right top corner */
 .page-button-group {
     position:absolute;
@@ -41,14 +51,18 @@
 }
 
 /* setup rules page */
-#page-setup-rules {
+/*
+#page-rules {
     background:black;
 }
+*/
 
 /* setup game page */
+/*
 #page-setup-game {
     background:black;
 }
+*/
 .player-name {
     width:100%;
 }
@@ -58,22 +72,34 @@
     height:40px;
 }
 /* bidding page */
+/*
 #page-bidding {
     background:black;
 }
+*/
+
 /* show the bids buttons in a row wrapping to the next line if possible */
-.bids{
+.bid{
     display:flex;
     flex-wrap:wrap;
 }
-.bids button {
+
+.bid button {
     margin:10px;
     padding:5px;
 
 }
 
 /* playing page */
+/*
 #page-playing {
     background:black;
 }
+*/
+
+/* playing finished page */
+#page-finished {
+    background:blue;
+}
+
 
