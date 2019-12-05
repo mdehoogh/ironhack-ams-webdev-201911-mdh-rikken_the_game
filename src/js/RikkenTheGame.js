@@ -489,7 +489,7 @@ class RikkenTheGame extends PlayerEventListener{
                 // register the trick with the player who won
                 this._players[highestCardPlayer].trickWon(this._tricks.length);
                 this._player=highestCardPlayer;
-                console.log("The trick was won by player #"+this.highestCardPlayer+": '"+this._players[this.highestCardPlayer].name+"'.");
+                console.log("The trick was won by player #"+highestCardPlayer+": '"+this._players[highestCardPlayer].name+"'.");
             }
             // game over?????? i.e. all 13 tricks complete
             if(this._tricks.length==13){

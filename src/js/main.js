@@ -18,7 +18,21 @@ var rikkenTheGame=null; // the game (engine) in charge of managing playing the g
 
 var currentPlayer=null;
 
+const PLAYMODE_SERIOUS=0,PLAYMODE_DEMO=1;
+
+var playmode=1;
+
 var bidderCardsElement=document.getElementById("bidder-cards");
+
+function initializeBidderSuitecardsButton(){
+    let button=document.getElementById("bidder-suitecards-button");
+    button.addEventListener("click",function(){
+        // console.log("Bidder suitecards button clicked!");
+        this.classList.toggle("active-bid-button"); // a ha, didn't know this
+        document.getElementById("bidder-suitecards").style.display=(this.classList.contains("active-bid-button")?"block":"none");
+    });
+}
+/* replacing:
 function toggleBidderCards(event){
     if(event.currentTarget.value.length>0){
         event.currentTarget.innerHTML="Verberg kaarten";
@@ -30,6 +44,7 @@ function toggleBidderCards(event){
         bidderCardsElement.innerHTML="";
     }
 }
+*/
 /**
  * clears the bid table
  * to be called with every new game
@@ -72,6 +87,60 @@ function askForCard(){
     }
 }
 
+function updateBidderSuiteCards(suiteCards){
+    let tablebody=document.getElementById("bidder-suitecards-table").querySelector("tbody");
+    // console.log("Suite cards: ",suiteCards);
+    let rows=tablebody.querySelectorAll("tr");
+    // console.log("Number of rows: ",rows.length);
+    for(let suite=0;suite<rows.length;suite++){
+        let row=rows[suite];
+        let suiteColor=SUITE_COLORS[suite%2];
+        let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
+        // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
+        let columns=row.querySelectorAll("td");
+        // console.log("Number of columns: ",columns.length);
+        for(let suiteCard=0;suiteCard<columns.length;suiteCard++){
+            let cell=columns[suiteCard];
+            let cardInSuite=(suiteCard<cardsInSuite.length?cardsInSuite[suiteCard]:null);
+            if(cardInSuite){
+                // console.log("Showing card: ",cardInSuite);
+                cell.innerHTML=cardInSuite.getTextRepresentation();
+                cell.style.color=suiteColor;  
+            }else
+                cell.innerHTML="";
+        }
+    }
+}
+/**
+ * for playing the cards are shown in buttons inside table cells
+ * @param {*} suiteCards 
+ */
+function updatePlayerSuiteCards(suiteCards){
+    let tablebody=document.getElementById("player-suitecards-table").querySelector("tbody");
+    // console.log("Suite cards: ",suiteCards);
+    let rows=tablebody.querySelectorAll("tr");
+    // console.log("Number of rows: ",rows.length);
+    for(let suite=0;suite<rows.length;suite++){
+        let row=rows[suite];
+        let suiteColor=SUITE_COLORS[suite%2];
+        let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
+        // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
+        let columns=row.querySelectorAll("td");
+        // console.log("Number of columns: ",columns.length);
+        for(let suiteCard=0;suiteCard<columns.length;suiteCard++){
+            let cellbutton=columns[suiteCard].querySelector("input[type=button]");
+            let cardInSuite=(suiteCard<cardsInSuite.length?cardsInSuite[suiteCard]:null);
+            if(cardInSuite){
+                // console.log("Showing card: ",cardInSuite);
+                cellbutton.value=cardInSuite.getTextRepresentation();
+                cellbutton.style.color=suiteColor;
+                cellbutton.style.display="inline";
+            }else // remove the border
+                cellbutton.style.display="none";
+        }
+    }
+}
+
 class OnlinePlayer extends Player{
     constructor(name){
         super(name);
@@ -83,11 +152,20 @@ class OnlinePlayer extends Player{
         setInfo(this.name+" moet nu bieden!");
         if(currentPage!="page-bidding")setPage("page-bidding"); // JIT to the right page
         console.log("Possible bids player '"+this.name+"' could make: ",possibleBids);
+
         //setInfo("Maak een keuze uit een van de mogelijke biedingen.");
         document.getElementById("bidder").innerHTML=this.name;
+        /* replacing:
+        document.getElementById("toggle-bidder-cards").innerHTML="Toon kaarten";
         bidderCardsElement.innerHTML="";
         document.getElementById("toggle-bidder-cards").value=this.getTextRepresentation("<br>");
-        document.getElementById("toggle-bidder-cards").innerHTML="Toon kaarten";
+        */
+        // either show or hide the bidder cards immediately
+        document.getElementById("bidder-suitecards").style.display=(playmode==PLAYMODE_DEMO?"block":"none");
+        if(playmode==PLAYMODE_DEMO^document.getElementById("bidder-suitecards-button").classList.contains("active-bid-button"))
+            document.getElementById("bidder-suitecards-button").classList.toggle("active-bid-button");
+        updateBidderSuiteCards(this._suiteCards=this._getSuiteCards());
+
         // only show the buttons
         for(let bidButton of document.getElementsByClassName("bid"))
             bidButton.style.display=(possibleBids.indexOf(parseInt(bidButton.getAttribute('data-bid')))>=0?"initial":"none");
@@ -120,6 +198,7 @@ class OnlinePlayer extends Player{
         currentPlayer=this;
         this._card=null; // get rid of any currently card
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
+        updatePlayerSuiteCards(this._suiteCards=this._getSuiteCards()); // remember the suite cards!!!!
         showTrick(trickObjects);
         askForCard();
     }
@@ -132,11 +211,12 @@ class OnlinePlayer extends Player{
         this._partnerSuite=partnerSuite;
         this.partnerSuiteChosen();
     }
-    setCardIndex(cardIndex){
-        if(cardIndex>=0&&cardIndex<this.numberOfCards)
-            this.setCard(this._cards[cardIndex]);
+    setCardSuiteAndIndex(suite,index){
+        let card=(suite<this._suiteCards.length&&this._suiteCards[suite].length?this._suiteCards[suite][index]:null);
+        if(card)
+            this.setCard(card);
         else
-            alert("Invalid card index "+String(cardIndex)+".");
+            alert("Invalid card suite "+String(suite)+" and suite index "+String(index)+".");
     }
 }
 
@@ -174,8 +254,10 @@ function partnerSuiteButtonClicked(event){
  * clicking a partner suite button registers the chosen partner suite with the current player 
  * @param {*} event 
  */
-function cardButtonClicked(event){
-    currentPlayer.setCardIndex(event.currentTarget.getAttribute("data-card-index"));
+function playablecardButtonClicked(event){
+    let playablecardCell=event.currentTarget;
+    if(playablecardCell.style.border="0px")return; // empty 'unclickable' cell
+    currentPlayer.setCardSuiteAndIndex(parseInt(playablecardCell.getAttribute("data-suite-id")),parseInt(playablecardCell.getAttribute("data-suite-index")));
 }
 
 class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
@@ -312,19 +394,25 @@ window.onload=function(){
         };
     };
     */
+    // event handlers for next, cancel, and newPlayers buttons
     for(let nextButton of document.getElementsByClassName('next'))nextButton.onclick=nextPage;
     for(let cancelButton of document.getElementsByClassName('cancel'))cancelButton.onclick=cancelPage;
     for(let newPlayersButton of document.getElementsByClassName('new-players')){
         console.log("New players!");
         newPlayersButton.onclick=newPlayers;
     }
+
     // attach an onclick event handler for all bid buttons
     for(let bidButton of document.getElementsByClassName("bid"))bidButton.onclick=bidButtonClicked;
-    document.getElementById("toggle-bidder-cards").onclick=toggleBidderCards;
+    
+    // prepare for showing/hiding the cards of the current bidder
+    initializeBidderSuitecardsButton();
+    // replacing: document.getElementById("toggle-bidder-cards").onclick=toggleBidderCards;
+
     // event handler for selecting a suite
     for(let suiteButton of document.querySelectorAll(".suite.trump"))suiteButton.onclick=trumpSuiteButtonClicked;
     for(let suiteButton of document.querySelectorAll(".suite.partner"))suiteButton.onclick=partnerSuiteButtonClicked;
-    // clicking card buttons
-    for(let cardButton of document.getElementsByClassName("card"))cardButton.onclick=cardButtonClicked;
+    // clicking card 'buttons' (now cells in table)
+    for(let playablecardButton of document.getElementsByClassName("playablecard"))playablecardButton.onclick=playablecardButtonClicked;
     this.setPage(PAGES[0]);
 };
