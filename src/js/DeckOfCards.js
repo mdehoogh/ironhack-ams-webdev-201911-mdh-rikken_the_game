@@ -7,9 +7,9 @@ class DeckOfCards extends CardHolder{
     constructor(){
         super();
         // tell each card that I'm holding it
-        for(let cardSuiteIndex=0;cardSuiteIndex<CARD_SUITES.length;cardSuiteIndex++)
-            for(let cardNameIndex=0;cardNameIndex<CARD_NAMES.length;cardNameIndex++)
-                new HoldableCard(cardSuiteIndex,cardNameIndex,this);
+        for(let suiteIndex=0;suiteIndex<SUITE_NAMES.length;suiteIndex++)
+            for(let rankIndex=0;rankIndex<RANK_NAMES.length;rankIndex++)
+                new HoldableCard(suiteIndex,rankIndex,this);
         console.log("Cards held by '"+this.toString()+"': "+this.getTextRepresentation()+".");
     }
 

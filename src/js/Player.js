@@ -122,6 +122,7 @@ class Player extends CardHolder{
         if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});
         if(this._game)this._game.cardPlayed();
     }
+    
     // TODO a bid setter will allow subclasses to pass a bid by setting the property
     setCard(card){
         this._card=card;

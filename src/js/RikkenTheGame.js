@@ -3,7 +3,7 @@
  */
 
 // posssible game states
-const OUT_OF_ORDER=-1,IDLE=0,DEALING=1,BIDDING=2,INITIATE_PLAYING=3,TRUMP_CHOOSING=4,PARTNER_CHOOSING=5,PLAYING=6,FINISHING=7;
+const OUT_OF_ORDER=-1,IDLE=0,DEALING=1,BIDDING=2,INITIATE_PLAYING=3,TRUMP_CHOOSING=4,PARTNER_CHOOSING=5,PLAYING=6,FINISHED=7;
 
 // possible bids
 // NOTE the highest possible bid (troela) is obligatory!!
@@ -12,8 +12,9 @@ const BID_PAS=0,BID_RIK=1,BID_RIK_BETER=2,BID_NEGEN_ALLEEN=3,BID_NEGEN_ALLEEN_BE
 const BIDS_ALL_CAN_PLAY=[BID_PICO,BID_OPEN_MISERE,BID_OPEN_MISERE_MET_EEN_PRAATJE]; // trumpless games
 const BIDS_WITH_PARTNER_IN_HEARTS=[BID_RIK_BETER,BID_TIEN_ALLEEN_BETER,BID_ELF_ALLEEN_BETER,BID_TWAALF_ALLEEN_BETER,BID_DERTIEN_ALLEEN_BETER]; // games with trump played with a partner
 const BID_RANKS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0,-1]; // how I played it (bid pass excluded (always rank 0))
+
 // possible ranks (in Dutch)
-const RANK_NAMES=["twee","drie","vier","vijf","zes","zeven","acht","negen","tien","boer","vrouw","heer","aas"];
+const DUTCH_RANK_NAMES=["twee","drie","vier","vijf","zes","zeven","acht","negen","tien","boer","vrouw","heer","aas"];
 
 /**
  * to be registered as event listener with a single RikkenTheGame instance (in the constructor)
@@ -60,7 +61,7 @@ class Trick extends CardHolder{
         this.playSuite=this.trumpSuite; // the play suite becomes the trump suite
     }
     addCard(card){
-        if(!super.addCard(card))return false;
+        super.addCard(card);
         // if no play suite is defined yet, this (first) card defines the play suite!!!
         if(this.playSuite<0)this.playSuite=card.suite;
     }
@@ -148,6 +149,13 @@ class RikkenTheGame extends PlayerEventListener{
     }
 
     get numberOfPlayers(){return this._players.length;}
+    
+    get numberOfTricksPlayed(){return this._tricks.length;}
+
+    getLastBids(){
+        let lastBids=[];this._highestBidPlayers.forEach((highestBidPlayer)=>{lastBids.push(highestBidPlayer[0]);});return lastBids;
+    }
+
     //getPlayerName(player){return(player>0&&player<this.numberOfPlayers?this._players[player].name:"");}
     
     /**
@@ -261,7 +269,7 @@ class RikkenTheGame extends PlayerEventListener{
                     this._partnerCardPlayedStatus=(this._partnerSuite>=0?0:-1); // keep track of whether the partner card was played
                     console.log("Let the games begin!");
                     this._trick=new Trick(this._player,this._trumpSuiteIndex,this._canAskForPartnerCardBlind());
-                    this._players[this._player].playACard(this._getTrickObjects());
+                    this._players[this._player].playACard(this._getTrickObjects(),this._trick._playSuite);
                 }
                 break;
         }
@@ -294,7 +302,7 @@ class RikkenTheGame extends PlayerEventListener{
         // I guess we can pass along the rank, which means we can choose the rank ourselves
         if(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER){ // yes, a regular 'rik'
             this._partnerRank=this._getPartnerRank();
-            this._players[this._player].choosePartnerSuite(RANK_NAMES[this._partnerRank]); // passing along the rank of the card the user can choose
+            this._players[this._player].choosePartnerSuite(DUTCH_RANK_NAMES[this._partnerRank]); // passing along the rank of the card the user can choose
         }else // a solitary play, so we can start playing immediately
             this._startPlaying((this.dealer+1)%this.numberOfPlayers);
     }
@@ -324,7 +332,7 @@ class RikkenTheGame extends PlayerEventListener{
                     // pass along all the suites the player has (from which to choose from)
                     this._players[this._player].chooseTrumpSuite(this._players[this._player].getSuites());
                 }else // trump is known (which can only be hearts) TODO what if this player does not have any trump cards?????????
-                    this._setTrumpSuite(CARD_SUITES.indexOf("heart")); // set the trump suite directly!!!
+                    this._setTrumpSuite(SUITE_NAMES.indexOf("heart")); // set the trump suite directly!!!
             }else // not a trump suite
                 // played by the highest bidder on his own
                 this._startPlaying((this.dealer+1)%this.numberOfPlayers);

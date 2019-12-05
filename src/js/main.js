@@ -10,7 +10,7 @@ function capitalize(str){return(str.length>0?str[0].toUpperCase()+str.slice(1):"
 
 const PAGES=["page-rules","page-settings","page-setup-game","page-bidding","page-trump-choosing","page-partner-choosing","page-play-reporting","page-playing","page-finished"];
 
-const SUITE_COLORS=["red","black"];
+///// moved to CSS: const SUITE_COLORS=["red","black"];
 
 var currentPage; // the current page
 
@@ -21,6 +21,9 @@ var currentPlayer=null;
 const PLAYMODE_SERIOUS=0,PLAYMODE_DEMO=1;
 
 var playmode=1;
+
+// demo mode we use predefined player names
+var DEFAULT_PLAYERS=[["","","","",""],["Marc","Jurgen","Monika","Anna",""]];
 
 var bidderCardsElement=document.getElementById("bidder-cards");
 
@@ -59,21 +62,25 @@ function clearBidTable(){
  * shows the given trick
  * @param {*} trick 
  */
-function showTrick(trickObjects){
+function showTrick(trickObjects,playSuite){
     console.log("Showing trick objects: "+trickObjects+".");
+    document.getElementById("play-suite").innerHTML=(playSuite>=0?"Er wordt "+SUITE_NAMES[playSuite]+" gespeeld!":"Slag "+String(rikkenTheGame.numberOfTricksPlayed+1));
     // the trick object contains the cards played by name
     for(let trickLabel of document.getElementsByClassName('trick')){
         let trickObjectIndex=parseInt(trickLabel.getAttribute("data-trick-index"));
         if(trickObjectIndex>=0&&trickObjectIndex<trickObjects.length){
             let trickObject=trickObjects[trickObjectIndex];
-            trickLabel.style.color=SUITE_COLORS[trickObject.card.suite%2]; // in the right color
+            trickLabel.classList.add(SUITE_NAMES[trickObject.card.suite]);
+            /// replacing: trickLabel.style.color=SUITE_COLORS[trickObject.card.suite%2]; // in the right color
             // showing the name is not necessary per se
             trickLabel.innerHTML=/*trickObject.name+": "+*/trickObject.card.getTextRepresentation();
             trickLabel.style.display="initial";
         }else
             trickLabel.style.display="none";
     }
+    console.log("Trick shown!");
 }
+/* obsolete now:
 function askForCard(){
     // I guess I should place the cards of the current player on screen
     for(let cardButton of document.getElementsByClassName('card')){
@@ -81,20 +88,22 @@ function askForCard(){
         let card=(cardIndex<currentPlayer._cards.length?currentPlayer._cards[cardIndex]:null);
         cardButton.style.display=(card?"initial":"none");
         if(card){
-            cardButton.style.color=SUITE_COLORS[card.suite%2]; // alternating suite colors
+            cardButton.classList.add(SUITE_NAMES[card.suite]);
+            // replacing: cardButton.style.color=SUITE_COLORS[card.suite%2]; // alternating suite colors
             cardButton.value=card.getTextRepresentation();
         }
     }
 }
-
+*/
 function updateBidderSuiteCards(suiteCards){
+    console.log("Showing the (current player) cards for bidding.");
     let tablebody=document.getElementById("bidder-suitecards-table").querySelector("tbody");
     // console.log("Suite cards: ",suiteCards);
     let rows=tablebody.querySelectorAll("tr");
     // console.log("Number of rows: ",rows.length);
     for(let suite=0;suite<rows.length;suite++){
         let row=rows[suite];
-        let suiteColor=SUITE_COLORS[suite%2];
+        /////////let suiteColor=SUITE_COLORS[suite%2];
         let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
         // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
         let columns=row.querySelectorAll("td");
@@ -105,7 +114,7 @@ function updateBidderSuiteCards(suiteCards){
             if(cardInSuite){
                 // console.log("Showing card: ",cardInSuite);
                 cell.innerHTML=cardInSuite.getTextRepresentation();
-                cell.style.color=suiteColor;  
+                cell.classList.add(SUITE_NAMES[cardInSuite.suite]); // replacing: cell.style.color=suiteColor;  
             }else
                 cell.innerHTML="";
         }
@@ -116,29 +125,66 @@ function updateBidderSuiteCards(suiteCards){
  * @param {*} suiteCards 
  */
 function updatePlayerSuiteCards(suiteCards){
+    console.log("Showing the (current player) cards to choose from.");
     let tablebody=document.getElementById("player-suitecards-table").querySelector("tbody");
-    // console.log("Suite cards: ",suiteCards);
+    console.log("Suite cards: ",suiteCards);
     let rows=tablebody.querySelectorAll("tr");
-    // console.log("Number of rows: ",rows.length);
+    console.log("Number of rows: ",rows.length);
     for(let suite=0;suite<rows.length;suite++){
         let row=rows[suite];
-        let suiteColor=SUITE_COLORS[suite%2];
+        /////////let suiteColor=SUITE_COLORS[suite%2];
         let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
         // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
         let columns=row.querySelectorAll("td");
         // console.log("Number of columns: ",columns.length);
         for(let suiteCard=0;suiteCard<columns.length;suiteCard++){
             let cellbutton=columns[suiteCard].querySelector("input[type=button]");
+            if(!cellbutton){console.log("No cell button!");continue;}
             let cardInSuite=(suiteCard<cardsInSuite.length?cardsInSuite[suiteCard]:null);
             if(cardInSuite){
                 // console.log("Showing card: ",cardInSuite);
                 cellbutton.value=cardInSuite.getTextRepresentation();
-                cellbutton.style.color=suiteColor;
+                cellbutton.classList.add(SUITE_NAMES[cardInSuite.suite]); // replacing: cellbutton.style.color=suiteColor;
                 cellbutton.style.display="inline";
-            }else // remove the border
+            }else // hide the button
                 cellbutton.style.display="none";
         }
     }
+    console.log("Current player cards to choose from shown!");
+}
+
+function showDefaultPlayerNames(){
+    console.log("Showing default player names!");
+    let playerNames=DEFAULT_PLAYERS[document.getElementById("demo-playmode-checkbox").checked?1:0];
+    for(playerNameInputElement of document.getElementsByClassName("player-name-input")){
+        if(playerNameInputElement.value.length==0)
+            playerNameInputElement.value=playerNames[parseInt(playerNameInputElement.getAttribute("data-player-id"))];
+    }
+}
+
+/**
+ * prepares the GUI for playing the game
+ */
+function getGameInfo(){
+    let gameInfo="";
+   if(rikkenTheGame){
+        let highestBidders=rikkenTheGame.getHighestBidders(); // those bidding
+        // playing with trump is easiest
+        if(rikkenTheGame._trumpSuite>=0){ // only a single highest bidder!!!
+           let highestBidder=highestBidders[0];
+            if(rikkenTheGame.highestBid==BID_TROELA){
+                let troelaPlayer=rikkenTheGame.getPlayerAtIndex(highestBidder);
+                gameInfo=troelaPlayer.name+" heeft troela. ";
+                gameInfo+=SUITE_NAMES[rikkenTheGame._trumpSuite]+" is troef. ";
+                gameInfo+=rikkenTheGame.getPlayerAtIndex(troelaPlayer.partner).name+" is mee.";
+            }else{
+                gameInfo=rikkenTheGame.getPlayerAtIndex(highestBidder).name+" rikt in de "+SUITE_NAMES[rikkenTheGame._trumpSuite]+". ";
+            }
+       }else{ // there's no trump, everyone is playing for him/herself
+
+       }
+   }
+   return gameInfo;
 }
 
 class OnlinePlayer extends Player{
@@ -194,13 +240,14 @@ class OnlinePlayer extends Player{
             suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
         document.getElementById('partner-rank').innerHTML=partnerRankName;
     }
-    playACard(trickObjects){
+    playACard(trickObjects,playSuite){
         currentPlayer=this;
+        if(rikkenTheGame.numberOfTricksPlayed==0)document.getElementById("game-info").innerHTML=rikkenTheGame.getGameInfo();
         this._card=null; // get rid of any currently card
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
+        setInfo(this.name+", welke "+(playSuite>=0?SUITE_NAMES[playSuite]:"kaart")+" wil je "+(trickObjects.length>0?"bij":"")+"spelen?");
         updatePlayerSuiteCards(this._suiteCards=this._getSuiteCards()); // remember the suite cards!!!!
-        showTrick(trickObjects);
-        askForCard();
+        showTrick(trickObjects,playSuite);
     }
     // setter to set the trump and partner suite once the corresponding button is clicked
     set trumpSuite(trumpSuite){
@@ -256,8 +303,25 @@ function partnerSuiteButtonClicked(event){
  */
 function playablecardButtonClicked(event){
     let playablecardCell=event.currentTarget;
-    if(playablecardCell.style.border="0px")return; // empty 'unclickable' cell
+    ////////if(playablecardCell.style.border="0px")return; // empty 'unclickable' cell
     currentPlayer.setCardSuiteAndIndex(parseInt(playablecardCell.getAttribute("data-suite-id")),parseInt(playablecardCell.getAttribute("data-suite-index")));
+}
+
+function newGame(players){
+
+    if(!players&&rikkenTheGame)players=rikkenTheGame._players; // if this is a next game to play
+
+    if(!players){alert("No players!");return;}
+
+    rikkenTheGame=null;
+
+    try{
+        rikkenTheGame=new RikkenTheGame(players,onlineRikkenTheGameEventListener);
+        rikkenTheGame.start();
+    }catch(error){
+        setInfo("Starten van het spel mislukt: "+error);
+    }
+
 }
 
 class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
@@ -316,6 +380,7 @@ function setPage(newPage){
                         break;
                     case 2:
                         {
+                            showDefaultPlayerNames();
                             setInfo("Vul de namen van de spelers in. Een spelernaam is voldoende.");
                         }
                         break;
@@ -332,11 +397,12 @@ function setPage(newPage){
                         break;
                     case 5:
                         {
+                            prepareForPlaying();
                             setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");
                         }
                         break;
                 }
-            }    
+            }
         }else
             alert("BUG: Unknown page '"+_page+"' requested!");
     });
@@ -354,6 +420,7 @@ function cancelPage(event){
  * to be called when the new-players button is clicked, to start a new game with a new set of players
  */
 function newPlayers(){
+
     let players=[];
     let noPlayerNames=true;
     // iterate over all player input fields
@@ -369,14 +436,9 @@ function newPlayers(){
         setInfo("Geen spelernamen opgegeven. Heb tenminste een spelernaam nodig!");
         return;
     }
-    // try to create a game
-    rikkenTheGame=null;
-    try{
-        rikkenTheGame=new RikkenTheGame(players,onlineRikkenTheGameEventListener);
-        rikkenTheGame.start();
-    }catch(error){
-        setInfo("De volgende fout is opgetreden: "+error);
-    }
+
+    newGame(players);
+
 }
 
 window.onload=function(){
@@ -410,9 +472,15 @@ window.onload=function(){
     // replacing: document.getElementById("toggle-bidder-cards").onclick=toggleBidderCards;
 
     // event handler for selecting a suite
-    for(let suiteButton of document.querySelectorAll(".suite.trump"))suiteButton.onclick=trumpSuiteButtonClicked;
-    for(let suiteButton of document.querySelectorAll(".suite.partner"))suiteButton.onclick=partnerSuiteButtonClicked;
+    for(let suiteButton of document.querySelectorAll(".suite.bid-trump"))suiteButton.onclick=trumpSuiteButtonClicked;
+    for(let suiteButton of document.querySelectorAll(".suite.bid-partner"))suiteButton.onclick=partnerSuiteButtonClicked;
     // clicking card 'buttons' (now cells in table)
-    for(let playablecardButton of document.getElementsByClassName("playablecard"))playablecardButton.onclick=playablecardButtonClicked;
+    for(let playablecardButton of document.querySelectorAll(".playable.card"))playablecardButton.onclick=playablecardButtonClicked;
+    
+    // make the suite elements of a specific type show the right text!!!!
+    for(let suite=0;suite<4;suite++)
+        for(let suiteButton of document.querySelectorAll(".suite."+SUITE_NAMES[suite]))
+            suiteButton.value=SUITE_CHARACTERS[suite];
+
     this.setPage(PAGES[0]);
 };

@@ -3,6 +3,7 @@
 .body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     background: gray;
+    font-size:16px;
 }
 
 #info {
@@ -42,12 +43,12 @@ input[type=button] {
     top:2rem;
     right:2rem;
     margin:auto;
-    font-size:2em;
+    font-size:2rem;
 }
 
 /* h1 is used for page titles */
 .page-title{
-    font-size:2em;
+    font-size:2rem;
 }
 
 /* setup rules page */
@@ -71,7 +72,17 @@ input[type=button] {
     width:200px;
     height:40px;
 }
+
 /* bidding page */
+.pas{
+    color:grey;
+}
+.rik{
+    color:green;
+}
+.solitary{
+    color:blue;
+}
 /*
 #page-bidding {
     background:black;
@@ -91,6 +102,36 @@ input[type=button] {
 }
 
 /* playing page */
+.trump .diamond,.heart{
+    color:purple;
+}
+.diamond,.heart{
+    color:red;
+    font-size:1.2rem;
+}
+.trump .club,.spade {
+    color:blue;
+}
+.club,.spade {
+    color:black;
+    font-size:1.2rem;
+}
+.card{
+    font-size:1.2rem;
+}
+.partner{
+    color:green;
+}
+.trick-cards{
+    margin:0 1rem;
+}
+.game-info{
+    margin:0 10px;
+}
+.trick-info{
+    display:flex;
+    flex-direction: column;
+}
 /*
 #page-playing {
     background:black;
@@ -114,7 +155,7 @@ input[type=button] {
   background-color: #eee;
   color: #444;
   cursor: pointer;
-  padding: 14px;
+  padding: 10px;
   width: 100%;
   border: none;
   text-align: left;
@@ -130,7 +171,7 @@ input[type=button] {
 /* Style the collapsible content. Note: hidden by default */
 #bidder-suitecards {
   padding: 0 18px;
-  display: none;
+  /* display: none; */
   overflow: hidden;
   background-color: #f1f1f1;
 }
