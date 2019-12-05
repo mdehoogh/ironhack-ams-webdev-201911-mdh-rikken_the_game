@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Rikken - The Game</title>
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+</head>
+<body>
+    <!-- this might work!!! -->
+    <div width="300" height="500">
+        <svg viewBox="0 0 676 976"><use xlink:href="img/svg-cards.svg#heart_1"></use></svg>
+    </div>
+    <!-- 
+        Ok, it works with object and when I create a separate svg file for each of the cards with
+        a <use> in it pointing the appropriate <g> in the main file, which doesn't help yet to get
+        them directly out of the original file though!!!
+        BUT you can see that img does accept <view> things!!!
+    -->
+    <!-- the image approach (not showing in Chrome) -->
+    <img src="img/heart_1.svg" alt="no way, Jose"/>
+    <!-- the iframe is showing BUT the link (below) is not!!!! -->
+    <!-- <iframe name="cards" src="img/example-use.svg"></iframe> -->
+    <!-- object approach (seems to work best in Chrome (i.e. no scrollbars attached!!) -->
+    <object name="cards" type="image/svg+xml" data="img/example-use.svg"></object>
+    <!-- can we get the card directly (without having to use it in a separate file??) -->
+    <object name="cards" type="image/svg+xml" data="img/svg-cards.svg#heart_1"></object>
+    <h1>Can you see this?</h1>
+    <div class="tabletop">
+        <!-- by using display:block on the card class made the reference get the proper card size -->
+        <a class="card" target="cards" href="img/example-use.svg#heart_1"></a>
+    </div>
+    <div>
+        <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/fragment-ready-1.svg#icon-clock-view" alt="" />
+    </div>
+
+    <!-- scripts -->
+    <script src="js/Card.js"></script>
+    <script src="js/CardHolder.js"></script>
+    <script src="js/DeckOfCards.js"></script>
+    <script src="js/Player.js"></script>
+    <script src="js/RikkenTheGame.js"></script>
+</body>
+</html>

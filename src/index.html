@@ -175,13 +175,15 @@
                     <input type='button' class="next" value='Klaar'>
                 </div>
             </div>
+            <!-- current player -->
+            <div class='prompt'><span id='card-player'></span>, welke <span id='trick-playsuite'></span> wil je spelen?</div>
             <div>
                 <!-- a player can ask for the ace blind -->
                 <input type="checkbox" id='ask-partner-blind'><span>De aas/heer blind opvragen</span>
             </div>
             <!-- showing the current trick (so far) -->
-            <div class='game-info'></div>
-            <div class='trick-info'>
+            <div id='game-info'></div>
+            <div id='trick-info'>
                 <!-- information on the suite being played in the current trick -->
                 <div id='play-suite'></div>
                 <div class='trick-cards'>Op tafel:&nbsp;

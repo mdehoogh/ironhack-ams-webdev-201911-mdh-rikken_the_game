@@ -125,10 +125,11 @@ input[type=button] {
 .trick-cards{
     margin:0 1rem;
 }
-.game-info{
+
+#game-info{
     margin:0 10px;
 }
-.trick-info{
+#trick-info{
     display:flex;
     flex-direction: column;
 }

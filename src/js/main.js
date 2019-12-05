@@ -242,7 +242,7 @@ class OnlinePlayer extends Player{
     }
     playACard(trickObjects,playSuite){
         currentPlayer=this;
-        if(rikkenTheGame.numberOfTricksPlayed==0)document.getElementById("game-info").innerHTML=rikkenTheGame.getGameInfo();
+        if(rikkenTheGame.numberOfTricksPlayed==0)document.getElementById("game-info").innerHTML=getGameInfo();
         this._card=null; // get rid of any currently card
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
         setInfo(this.name+", welke "+(playSuite>=0?SUITE_NAMES[playSuite]:"kaart")+" wil je "+(trickObjects.length>0?"bij":"")+"spelen?");
@@ -368,39 +368,17 @@ function setPage(newPage){
             pageElement.style.visibility=(showPage?"visible":"hidden");
             if(showPage){
                 switch(PAGES.indexOf(_page)){
-                    case 0:
-                        {
-                            setInfo("Stel de spelregels in.");
-                        }
-                        break;
-                    case 1:
-                        {
-                            setInfo("Kies de speelwijze.");
-                        }
-                        break;
+                    case 0:setInfo("Stel de spelregels in.");break;
+                    case 1:setInfo("Kies de speelwijze.");break;
                     case 2:
                         {
                             showDefaultPlayerNames();
                             setInfo("Vul de namen van de spelers in. Een spelernaam is voldoende.");
                         }
                         break;
-                    case 3:
-                        {
-                            setInfo("Wacht om de beurt op een verzoek tot het doen van een bod.");
-                            // did the players change? then we create a new rikkenTheGame
-                        }
-                    break;
-                    case 4:
-                        {
-                            setInfo("Wacht op het verzoek tot het opgeven van de troefkleur en/of de aas/heer.");
-                        }
-                        break;
-                    case 5:
-                        {
-                            prepareForPlaying();
-                            setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");
-                        }
-                        break;
+                    case 3:setInfo("Wacht om de beurt op een verzoek tot het doen van een bod.");break;
+                    case 4:setInfo("Wacht op het verzoek tot het opgeven van de troefkleur en/of de aas/heer.");break;
+                    case 5:setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");break;
                 }
             }
         }else

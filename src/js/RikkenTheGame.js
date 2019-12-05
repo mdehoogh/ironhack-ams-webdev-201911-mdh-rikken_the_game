@@ -58,12 +58,12 @@ class Trick extends CardHolder{
             throw new Error("Only the first player can ask for the partner card blind!");
         if(!this.canAskForPartnerCardBlind)
             throw new Error("Cannot ask for the partner card blind (anymore).");
-        this.playSuite=this.trumpSuite; // the play suite becomes the trump suite
+        this._playSuite=this.trumpSuite; // the play suite becomes the trump suite
     }
     addCard(card){
         super.addCard(card);
         // if no play suite is defined yet, this (first) card defines the play suite!!!
-        if(this.playSuite<0)this.playSuite=card.suite;
+        if(this.playSuite<0)this._playSuite=card.suite;
     }
     getPlayerWhoWon(){
         // find out which player won the trick
@@ -75,9 +75,7 @@ class Trick extends CardHolder{
                 return true;
         return false;
     }
-    get playSuite(){
-        return this._playSuite;
-    }
+    get playSuite(){return this._playSuite;}
 }
 
 class RikkenTheGame extends PlayerEventListener{
@@ -151,6 +149,12 @@ class RikkenTheGame extends PlayerEventListener{
     get numberOfPlayers(){return this._players.length;}
     
     get numberOfTricksPlayed(){return this._tricks.length;}
+
+    getPlayerAtIndex(player){return(player>=0&&player<this.numberOfPlayers?this._players[player]:null);}
+
+    getHighestBidders(){return this._highestBidPlayers;} // return all players that play the highest bid (possibly more than one)
+
+    getHighestBid(){return this._highestBid;} // the bid of the game that is being played
 
     getLastBids(){
         let lastBids=[];this._highestBidPlayers.forEach((highestBidPlayer)=>{lastBids.push(highestBidPlayer[0]);});return lastBids;
