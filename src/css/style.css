@@ -1,24 +1,44 @@
 /*
 */
-.body {
+body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    background: gray;
+    background: #eee;
     font-size:16px;
+}
+@media(min-width:640px)and(max-width:767px){
+    body{
+        font-size:18px;
+    }
+}
+@media(min-width:768px)and(max-width:1023px){
+    body{
+        font-size:20px;
+    }
+}
+@media(min-width:1024px)and(max-width:1199px){
+    body{
+        font-size:22px;
+    }
+}
+@media(min-width:1200px){
+    body{
+        font-size:24px;
+    }
 }
 
 #info {
     background:white;
     color:blue;
     font-family:Arial, Helvetica, sans-serif;
-    font-size:1em;
+    font-size:1rem;
 }
 
 .prompt {
-    font-size:2em;
+    font-size:1.5rem;
 }
 
 input[type=button] {
-    font-size:2.5em;
+    font-size:2.5rem;
 }
 
 .pages {
@@ -27,6 +47,18 @@ input[type=button] {
 
 .trick {
     height:100px;
+}
+
+#tricks-played-table tr:nth-child(even) {
+    background-color: #ccc;
+}
+
+.separator {
+    background:white;
+    height:5px;
+    width:100%;
+    margin-left:10px;
+    margin-right:10px;
 }
 
 .page {
@@ -40,15 +72,22 @@ input[type=button] {
 /* page-button-groups to show in the right top corner */
 .page-button-group {
     position:absolute;
-    top:2rem;
-    right:2rem;
+    top:1.6rem;
+    right:1.6rem;
     margin:auto;
-    font-size:2rem;
+    font-size:1.6rem;
 }
 
 /* h1 is used for page titles */
 .page-title{
-    font-size:2rem;
+    font-size:1.6rem;
+}
+
+.page-header{
+    border-bottom:5px;
+    border-color:red;
+    /* margin-left:16px;
+    margin-right:16px; */
 }
 
 /* setup rules page */

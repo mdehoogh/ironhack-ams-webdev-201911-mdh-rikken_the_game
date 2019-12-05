@@ -35,7 +35,12 @@ class Player extends CardHolder{
         this._playerIndex=-1;
         this._game=null;
         this._tricksWon=[]; // the tricks won (in any game)
+        this._askingForPartnerCardBlind=false;
         this.addEventListener(playerEventListener);
+    }
+
+    set askingForPartnerCardBlind(askingForPartnerCardBlind){
+        this._askingForPartnerCardBlind=askingForPartnerCardBlind;
     }
 
     // getters exposing information to the game (after making a bid, playing a card or choosing trump or partner)
@@ -45,17 +50,15 @@ class Player extends CardHolder{
 
     // can be set directly when a better 'rik' variation bid was done!!!!
     get trumpSuite(){return this._trumpSuite;}
-    set trumpSuite(trumpSuite){
-        this._trumpSuite=trumpSuite;
-        this.trumpSuiteChosen();
-    }
+    
     // TODO it would be easier to combine these in a card!!!!
     get partnerSuite(){return this._partnerSuite;}
     get partnerRank(){return this._partnerRank;}
 
-    setPartnerSuiteAndRank(){
+    // called from the UI to set the trump suite!!!!
+    set trumpSuite(trumpSuite){this._trumpSuite=trumpSuite;this.trumpSuiteChosen();}
+    set partnerSuite(partnerSuite){this._partnerSuite=partnerSuite;this.partnerSuiteChosen();}
 
-    }
     // end of getters/setters used by the game
 
     get game(){return this._game;}
@@ -122,7 +125,7 @@ class Player extends CardHolder{
         if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});
         if(this._game)this._game.cardPlayed();
     }
-    
+
     // TODO a bid setter will allow subclasses to pass a bid by setting the property
     setCard(card){
         this._card=card;
@@ -248,6 +251,8 @@ class Player extends CardHolder{
         this._tricksWon.push(trickIndex);
         console.log("Trick #"+trickIndex+" won by '"+this.name+"': "+this._tricksWon+".");
     }
+
+    getNumberOfTricksWon(){return this.tricksWon.length;}
 
     toString(){
         return this.name;

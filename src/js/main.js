@@ -1,3 +1,6 @@
+// possible ranks and suites (in Dutch)
+const DUTCH_RANK_NAMES=["twee","drie","vier","vijf","zes","zeven","acht","negen","tien","boer","vrouw","heer","aas"];
+const DUTCH_SUITE_NAMES=["ruiten","klaveren","harten","schoppen"];
 
 function setInfo(info){
     document.getElementById('info').innerHTML=info;
@@ -153,6 +156,23 @@ function updatePlayerSuiteCards(suiteCards){
     console.log("Current player cards to choose from shown!");
 }
 
+function updateTricksPlayedTable(){
+    let lastTrickPlayedIndex=rikkenTheGame.numberOfTricksPlayed-1;
+    if(lastTrickPlayedIndex>=0){
+        let trick=rikkenTheGame.getTrickAtIndex(lastTrickPlayedIndex);
+        let tricksPlayedTablebody=document.getElementById("tricks-played-table").querySelector("tbody");
+        let row=tricksPlayedTablebody.children[lastTrickPlayedIndex]; // the row we're interested in filling
+        for(trickPlayer=0;trickPlayer<trick._cards.length;trickPlayer++){
+            let player=(trickPlayer+trick.firstPlayer)%4;
+            let cell=row.children[player+1]; // use player to get the 'real' player column!!
+            let card=trick._cards[trickPlayer];
+            cell.innerHTML=card.getTextRepresentation();
+            if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!!
+            cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
+        }
+    }
+}
+
 function showDefaultPlayerNames(){
     console.log("Showing default player names!");
     let playerNames=DEFAULT_PLAYERS[document.getElementById("demo-playmode-checkbox").checked?1:0];
@@ -166,25 +186,54 @@ function showDefaultPlayerNames(){
  * prepares the GUI for playing the game
  */
 function getGameInfo(){
+    console.log("Determining game info.");
     let gameInfo="";
    if(rikkenTheGame){
         let highestBidders=rikkenTheGame.getHighestBidders(); // those bidding
+        console.log("\tHighest bidders: "+highestBidders.join(", ")+".");
+        let highestBid=rikkenTheGame.getHighestBid();
+        console.log("\tHighest bid: "+BID_NAMES[highestBid]+".");
+        let trumpSuite=rikkenTheGame.trumpSuite;
+        console.log("\tTrump suite: "+trumpSuite+".");
+        let partnerSuite=rikkenTheGame.partnerSuite;
+        let partnerRank=rikkenTheGame.partnerRank;
         // playing with trump is easiest
-        if(rikkenTheGame._trumpSuite>=0){ // only a single highest bidder!!!
+        if(trumpSuite>=0){ // only a single highest bidder!!!
            let highestBidder=highestBidders[0];
-            if(rikkenTheGame.highestBid==BID_TROELA){
+            if(highestBid==BID_TROELA){
                 let troelaPlayer=rikkenTheGame.getPlayerAtIndex(highestBidder);
-                gameInfo=troelaPlayer.name+" heeft troela. ";
-                gameInfo+=SUITE_NAMES[rikkenTheGame._trumpSuite]+" is troef. ";
-                gameInfo+=rikkenTheGame.getPlayerAtIndex(troelaPlayer.partner).name+" is mee.";
+                gameInfo=troelaPlayer.name+" heeft troela, en ";
+                gameInfo+=rikkenTheGame.getPlayerAtIndex(rikkenTheGame.fourthAcePlayer)+" is mee. ";
+                gameInfo+=capitalize(DUTCH_SUITE_NAMES[trumpSuite])+" is troef.";
+                /*
+                +", want ";
+                // TODO why does troelaPlayer does NOT have a proper partner: troelaPlayer.partner
+                gameInfo+=rikkenTheGame.getPlayerAtIndex(rikkenTheGame.fourthAcePlayer)+" heeft deze vierde aas, en is dus mee.";
+                */
             }else{
-                gameInfo=rikkenTheGame.getPlayerAtIndex(highestBidder).name+" rikt in de "+SUITE_NAMES[rikkenTheGame._trumpSuite]+". ";
+                if(highestBid==BID_RIK||highestBid==BID_RIK_BETER){
+                    gameInfo=rikkenTheGame.getPlayerAtIndex(highestBidder).name+" rikt in de "+DUTCH_SUITE_NAMES[trumpSuite];
+                    gameInfo+=", en vraagt de "+DUTCH_SUITE_NAMES[partnerSuite]+" "+DUTCH_RANK_NAMES[partnerRank]+" mee.";    
+                }else // without a partner
+                    gameInfo=rikkenTheGame.getPlayerAtIndex(highestBidder).name+" speelt "+BID_NAMES[trumpSuite]+" met "+DUTCH_SUITE_NAMES[trumpSuite]+" als troef.";
             }
-       }else{ // there's no trump, everyone is playing for him/herself
-
-       }
+        }else{ // there's no trump, everyone is playing for him/herself
+            let highestBidderPlayerNames=[];
+            highestBidders.forEach((highestBidder)=>{highestBidderPlayerNames.push(rikkenTheGame.getPlayerAtIndex(highestBidder).name);});
+            if(highestBidderPlayerNames.length>0){
+                if(highestBid!=BID_RIK&&highestBid!=BID_RIK_BETER)
+                    gameInfo=highestBidderPlayerNames.join(", ")+(highestBidderPlayerNames.length>1?" spelen ":" speelt ")+BID_NAMES[highestBid]+".";
+                else // a rik (by a single person always)
+                    gameInfo=highestBidderPlayerNames[0]+" rikt in de "+DUTCH_SUITE_NAMES[trumpSuite]+".";
+            }else
+                gameInfo="Iedereen heeft gepast. We spelen om de schoppen vrouw en de laatste slag!";
+        }
    }
    return gameInfo;
+}
+
+function askingForPartnerCardBlind(event){
+    currentPlayer.askingForPartnerCardBlind=event.currentTarget.checked;
 }
 
 class OnlinePlayer extends Player{
@@ -240,9 +289,20 @@ class OnlinePlayer extends Player{
             suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
         document.getElementById('partner-rank').innerHTML=partnerRankName;
     }
-    playACard(trickObjects,playSuite){
+    playACard(trickObjects,playSuite,canAskForPartnerCardBlind){
+        // if this is a new trick update the tricks played table with the previous trick
+        if(trickObjects.length==0)updateTricksPlayedTable();
         currentPlayer=this;
+        document.getElementById("can-ask-for-partner-card-blind").style.display=(canAskForPartnerCardBlind?"block":"none");
+        // always start unchecked...
+        document.getElementById("ask-for-partner-card-blind").checked=false; // when clicked should generate 
         if(rikkenTheGame.numberOfTricksPlayed==0)document.getElementById("game-info").innerHTML=getGameInfo();
+        document.getElementById("card-player").innerHTML=this.name;
+        document.getElementById("trick-playsuite").innerHTML=(playSuite>=0?DUTCH_SUITE_NAMES[playSuite].toLowerCase():"kaart");
+        let numberOfTricksWon=this.getNumberOfTricksWon();
+        // add the tricks won by the partner
+        if(this.partner>=0)numberOfTricksWon+=rikkenTheGame.getPlayerAtIndex(this.partner).getNumberOfTricksWon();
+        document.getElementById("tricks-won-so-far").innerHTML=String(numberOfTricksWon);
         this._card=null; // get rid of any currently card
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
         setInfo(this.name+", welke "+(playSuite>=0?SUITE_NAMES[playSuite]:"kaart")+" wil je "+(trickObjects.length>0?"bij":"")+"spelen?");
@@ -285,7 +345,8 @@ function trumpSuiteButtonClicked(event){
     // either trump or partner suite selected
     let trumpSuite=event.currentTarget.getAttribute("data-suite");
     console.log("Trump suite "+trumpSuite+" chosen.");
-    currentPlayer.trumpSuite=trumpSuite;
+    // go directly to the game (instead of through the player)
+    rikkenTheGame.trumpSuite=trumpSuite;
 }
 /**
  * clicking a partner suite button registers the chosen partner suite with the current player 
@@ -295,8 +356,10 @@ function partnerSuiteButtonClicked(event){
     // either trump or partner suite selected
     let partnerSuite=event.currentTarget.getAttribute("data-suite");
     console.log("Partner suite "+partnerSuite+" chosen.");
-    currentPlayer.partnerSuite=partnerSuite;
+    // go directly to the game (instead of through the player)
+    rikkenTheGame.partnerSuite=partnerSuite;
 }
+
 /**
  * clicking a partner suite button registers the chosen partner suite with the current player 
  * @param {*} event 
@@ -459,6 +522,8 @@ window.onload=function(){
     for(let suite=0;suite<4;suite++)
         for(let suiteButton of document.querySelectorAll(".suite."+SUITE_NAMES[suite]))
             suiteButton.value=SUITE_CHARACTERS[suite];
+
+    document.getElementById("ask-for-partner-card-blind").onclick=askingForPartnerCardBlind;
 
     this.setPage(PAGES[0]);
 };

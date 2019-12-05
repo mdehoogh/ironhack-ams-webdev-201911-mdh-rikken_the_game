@@ -15,7 +15,7 @@
     <div class='pages'>
         <!-- we have different 'pages' depending on where we are in the game -->
         <div id='page-rules' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Spelregels</p>
                 <div class="page-button-group">
                     <input type='button' class="next" value='Klaar'>
@@ -23,7 +23,7 @@
             </div>
         </div>
         <div id='page-settings' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Instellingen</p>
                 <div class="page-button-group">
                     <input type='button' class="next" value='Klaar'>
@@ -35,7 +35,7 @@
             </div>
         </div>
         <div id='page-setup-game' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Spelers</p>
                 <div class="page-button-group">
                     <input type='button' class="new-players" value='Rikken maar'>
@@ -49,7 +49,7 @@
             <div class='player-name'>Speler 5:&nbsp;<input class='player-name-input' data-player-id='4' type='text' size='30' placeholder='Naam van de extra speler'></div>
         </div>
         <div id='page-bidding' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Bieden</p>
                 <div class="page-button-group">
                     <input type='button' class="cancel" value='Afbreken'>
@@ -124,7 +124,7 @@
             </div>
         </div>
         <div id='page-trump-choosing' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Troefkleur kiezen</p>
                 <div class="page-button-group">
                     <button class="cancel">Afbreken</button>
@@ -141,7 +141,7 @@
             </div>
         </div>
         <div id='page-partner-choosing' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Aas of heer meevragen</p>
                 <div class="page-button-group">
                     <input type='button' class="cancel" value='Afbreken'>
@@ -159,7 +159,7 @@
             </div>
         </div>
         <div id='page-play-reporting' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Te spelen</p>
                 <div class="page-button-group">
                     <input type='button' class="cancel" value='Afbreken'>
@@ -168,21 +168,23 @@
             </div>
         </div>
         <div id='page-playing' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Spelen</p>
                 <div class="page-button-group">
                     <input type='button' class="cancel" value='Afbreken'>
                     <input type='button' class="next" value='Klaar'>
                 </div>
             </div>
+            <div id='game-info'></div>
             <!-- current player -->
             <div class='prompt'><span id='card-player'></span>, welke <span id='trick-playsuite'></span> wil je spelen?</div>
-            <div>
+            <!-- number of tricks won so far -->
+            <div>Aantal gehaalde slagen: <span id='tricks-won-so-far'>?</span>.</div>
+            <div id='can-ask-for-partner-card-blind'>
                 <!-- a player can ask for the ace blind -->
-                <input type="checkbox" id='ask-partner-blind'><span>De aas/heer blind opvragen</span>
+                <input type="checkbox" id='ask-for-partner-card-blind'><span>De aas/heer blind opvragen</span>
             </div>
             <!-- showing the current trick (so far) -->
-            <div id='game-info'></div>
             <div id='trick-info'>
                 <!-- information on the suite being played in the current trick -->
                 <div id='play-suite'></div>
@@ -261,9 +263,34 @@
                     </tbody>
                 </table>            
             </div>
+            <div class="separator"></div>
+            <div class='tricks-played'>
+                <table id='tricks-played-table'>
+                    <thead>
+                        <tr>
+                            <th>Slag</th><th>Speler 1</th><th>Speler 2</th><th>Speler 3</th><th>Speler 4</th><th>Opgehaald door</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>2</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>3</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>4</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>5</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>6</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>7</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>8</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>9</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>10</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>11</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>12</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                        <tr><td>13</td></td><td class='card'>1</td><td class='card'>2</td><td class='card'>3</td><td class='card'>4</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div id='page-finished' class='page'>
-            <div>
+            <div class='page-header'>
                 <p class='page-title'>Spelresultaat</p>
                 <div class="page-button-group">
                     <input type='button' value='Nog eens' onclick='newGame(null);'>

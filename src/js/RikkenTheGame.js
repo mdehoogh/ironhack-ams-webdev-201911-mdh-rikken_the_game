@@ -7,14 +7,11 @@ const OUT_OF_ORDER=-1,IDLE=0,DEALING=1,BIDDING=2,INITIATE_PLAYING=3,TRUMP_CHOOSI
 
 // possible bids
 // NOTE the highest possible bid (troela) is obligatory!!
-const BID_NAMES=["pas","rik","rik (beter)","negen alleen","negen alleen (beter)","pico","tien alleen","tien alleen (beter)","11 alleen","11 alleen (beter)","misere","12 alleen","12 alleen (beter)","open misere","13 alleen","13 alleen (beter)","open misere met een praatje"]; // excluding: ,"troela"];
+const BID_NAMES=["pas","rik","rik (beter)","negen alleen","negen alleen (beter)","pico","tien alleen","tien alleen (beter)","11 alleen","11 alleen (beter)","misere","12 alleen","12 alleen (beter)","open misere","13 alleen","13 alleen (beter)","open misere met een praatje","troela","schoppen vrouw en laatste slag"];
 const BID_PAS=0,BID_RIK=1,BID_RIK_BETER=2,BID_NEGEN_ALLEEN=3,BID_NEGEN_ALLEEN_BETER=4,BID_PICO=5,BID_TIEN_ALLEEN=6,BID_TIEN_ALLEEN_BETER=7,BID_ELF_ALLEEN=8,BID_ELF_ALLEEN_BETER=9,BID_MISERE=10,BID_TWAALF_ALLEEN=11,BID_TWAALF_ALLEEN_BETER=12,BID_OPEN_MISERE=13,BID_DERTIEN_ALLEEN=14,BID_DERTIEN_ALLEEN_BETER=15,BID_OPEN_MISERE_MET_EEN_PRAATJE=16,BID_TROELA=17,BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW=18;
 const BIDS_ALL_CAN_PLAY=[BID_PICO,BID_OPEN_MISERE,BID_OPEN_MISERE_MET_EEN_PRAATJE]; // trumpless games
 const BIDS_WITH_PARTNER_IN_HEARTS=[BID_RIK_BETER,BID_TIEN_ALLEEN_BETER,BID_ELF_ALLEEN_BETER,BID_TWAALF_ALLEEN_BETER,BID_DERTIEN_ALLEEN_BETER]; // games with trump played with a partner
 const BID_RANKS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0,-1]; // how I played it (bid pass excluded (always rank 0))
-
-// possible ranks (in Dutch)
-const DUTCH_RANK_NAMES=["twee","drie","vier","vijf","zes","zeven","acht","negen","tien","boer","vrouw","heer","aas"];
 
 /**
  * to be registered as event listener with a single RikkenTheGame instance (in the constructor)
@@ -47,35 +44,52 @@ class Trick extends CardHolder{
     // adding a flag indicating whether or not the first player can ask for the partner card
     constructor(firstPlayer,trumpSuite,canAskForPartnerCardBlind){
         super(); // using 4 fixed positions for the trick cards so we will know who played them!!!!
-        this.firstPlayer=firstPlayer;
-        this.trumpSuite=trumpSuite;
-        this.canAskForPartnerCardBlind=canAskForPartnerCardBlind;
+        this._firstPlayer=firstPlayer;
+        this._trumpSuite=trumpSuite;
+        this._canAskForPartnerCardBlind=canAskForPartnerCardBlind;
         this._playSuite=-1; // the suite of the trick (most of the time the first card)
+        this._winner=-1; // not won yet
         // let's keep track of the highest card
     }
+
+    get firstPlayer(){return this._firstPlayer;}
+    get winner(){return this._winner;}
+    set winner(winner){this._winner=winner;}
+    /*
     askingForPartnerCard(){
         if(this._cards.length>0)
             throw new Error("Only the first player can ask for the partner card blind!");
-        if(!this.canAskForPartnerCardBlind)
+        if(!this._canAskForPartnerCardBlind)
             throw new Error("Cannot ask for the partner card blind (anymore).");
-        this._playSuite=this.trumpSuite; // the play suite becomes the trump suite
+        this._playSuite=this._trumpSuite; // the play suite becomes the trump suite
     }
+    */
+    // NOTE addCard is NOT _addCard of the superclass! this is because we should set the holder on the card to add!!!!
     addCard(card){
-        super.addCard(card);
+        // if the flag of asking for the partner card blind is set, preset the 
+        if(this._askingForThePartnerCardBlind)this._playSuite=this._trumpSuite;
+        card.holder=this; // move the card to this trick by setting the holder property (will take care of adding/removing the card)
         // if no play suite is defined yet, this (first) card defines the play suite!!!
-        if(this.playSuite<0)this._playSuite=card.suite;
+        if(this._playSuite<0)this._playSuite=card.suite;
+        // once the play suite is set (most likely) never ask again (perhaps a bit to cautious)
+        if(this._playSuite>=0)this._canAskForPartnerCardBlind=false;
     }
-    getPlayerWhoWon(){
-        // find out which player won the trick
-        // it's either the highest trump card if any otherwise the highest card 
+    getCardPlayer(suite,rank){
+        for(let player=0;player<this._cards.length;player++)
+            if(this._cards[player].suite===suite&&this._cards[player].rank===rank)
+                return (firstPlayer+player)%4; // TODO can we assume 4 players in total?????
     }
     holdsCard(suite,rank){
         for(let card=0;card<this._cards.length;card++)
-            if(this._cards[card].suite==suite&&this._cards[card].rank==rank)
+            if(this._cards[card].suite===suite&&this._cards[card].rank===rank)
                 return true;
         return false;
     }
+    // public getters
     get playSuite(){return this._playSuite;}
+    get firstPlayer(){return this._firstPlayer;}
+    get trumpSuite(){return this._trumpSuite;}
+    get canAskForPartnerCardBlind(){return this._canAskForPartnerCardBlind;}
 }
 
 class RikkenTheGame extends PlayerEventListener{
@@ -95,6 +109,7 @@ class RikkenTheGame extends PlayerEventListener{
         this._partnerSuite=-1;this._partnerRank=-1; // the card of the partner (for games with trump and a partner)
         this._trick=null; // the current trick
         this._tricks=[]; // the tricks played
+        this._highestBid=-1; // no highest bid yet
         this._highestBidPlayers=[]; // all the players that made the highest bid (and are playing it)
         this._partnerCardPlayedStatus=-1; // whether to check for the partner card of not (-1: not at all, 0=still not played, 1=played)
         this._askingForThePartnerCardBlind=false; // when a user asks for the partner card blind
@@ -150,6 +165,8 @@ class RikkenTheGame extends PlayerEventListener{
     
     get numberOfTricksPlayed(){return this._tricks.length;}
 
+    getTrumpSuite(){return this._trumpSuite;}
+
     getPlayerAtIndex(player){return(player>=0&&player<this.numberOfPlayers?this._players[player]:null);}
 
     getHighestBidders(){return this._highestBidPlayers;} // return all players that play the highest bid (possibly more than one)
@@ -166,6 +183,7 @@ class RikkenTheGame extends PlayerEventListener{
      * setting the partner (of the highest bidder) means all partners are known
      */
     _setPartners(partner1,partner2){
+        console.log("Player #"+(partner1)+" and #"+(partner2)+" teaming up!");
         let teams=[[partner1,partner2],[]];
         this._players.forEach((player)=>{if(player._index!==partner1&&player._index!==partner2)teams[1].push(player._index);});
         teams.forEach((team)=>{
@@ -177,10 +195,12 @@ class RikkenTheGame extends PlayerEventListener{
 
     // after dealing the cards, the game can be played
     _startTheGame(){
-        this._checkForTroela();
+        this._highestBidPlayers=[];
+        this._checkForTroela(); // will if detected register the highest bidder!!!!
         // if a player has 3 aces the play to play is 'troela' and therefore the accepted bid
-        if(this.fourthAcePlayer>=0){ // set the game to play to 'troela'
+        if(this._highestBidPlayers.length>0){ // we will be playing 'troela'
             this._highestBid=BID_TROELA; // register as (final) highest bid
+            ////this._trumpSuite=this._players[this.fourthAcePlayer].getSuitesWithRank(RANK_ACE);
             // set the current player to the fourth ace player (which will take care of assigning all other partner properties)
             this._setPartners(this.fourthAcePlayer,this._highestBidPlayers[0]);
             // no need to choose trump or partner, so we can start playing the game with the fourth ace player to play first!!
@@ -205,8 +225,8 @@ class RikkenTheGame extends PlayerEventListener{
      */
     _canAskForPartnerCardBlind(){
         // the player to play first (i.e. the current player) should be the highest bid player
-        if(this._player==this._highestBidPlayers[0]){
-            if(this.partnerSuite>=0){ // there is a partner suite (i.e. the highest bid player is not playing alone)
+        if(this._partnerSuite>=0){ // there is a partner suite (i.e. the highest bid player is not playing alone)
+            if(this._player==this._highestBidPlayers[0]){ // the highest bid player is playing
                 if(this._partnerCardPlayedStatus==0){ // the partner card can be played and has not been played yet
                     // oops, almost forgot: the player must not have any cards in the given suite anymore
                     if(this._players[this._player].getSuites().indexOf(this.partnerSuite)<0)
@@ -273,7 +293,7 @@ class RikkenTheGame extends PlayerEventListener{
                     this._partnerCardPlayedStatus=(this._partnerSuite>=0?0:-1); // keep track of whether the partner card was played
                     console.log("Let the games begin!");
                     this._trick=new Trick(this._player,this._trumpSuiteIndex,this._canAskForPartnerCardBlind());
-                    this._players[this._player].playACard(this._getTrickObjects(),this._trick._playSuite);
+                    this._players[this._player].playACard(this._getTrickObjects(),this._trick.playSuite,this._trick.canAskForPartnerCardBlind);
                 }
                 break;
         }
@@ -295,13 +315,15 @@ class RikkenTheGame extends PlayerEventListener{
         while(this._players[this._player].getNumberOfCardsWithRank(partnerRank)==4)partnerRank--;
         return partnerRank;
     }
+
     /**
-     * set the trump suite with _setTrumpSuite
+     * setter for setting the trump suite
      * if the game played is not played by a single person (without a partner), the partner suite is requested next passing the rank of the card to ask for
      * @param {*} trumpSuite 
      */
-    _setTrumpSuite(trumpSuite){
+    set trumpSuite(trumpSuite){
         this._trumpSuite=trumpSuite;
+        if(this._trumpSuite>=0)console.log("Selected trump suite: "+SUITE_NAMES[this._trumpSuite]+".");
         // is this a trump game with a partner (ace/king) to ask for?
         // I guess we can pass along the rank, which means we can choose the rank ourselves
         if(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER){ // yes, a regular 'rik'
@@ -310,8 +332,13 @@ class RikkenTheGame extends PlayerEventListener{
         }else // a solitary play, so we can start playing immediately
             this._startPlaying((this.dealer+1)%this.numberOfPlayers);
     }
-    _setPartnerSuite(partnerSuite){
+    /**
+     * setter for setting the parent card suite
+     * @param {*} partnerSuite 
+     */
+    set partnerSuite(partnerSuite){
         this._partnerSuite=partnerSuite;
+        if(this._partnerSuite>=0)console.log("Selected partner suite: "+SUITE_NAMES[this._partnerSuite]+".");
         // the only player that knows its partner is the player that holds this card
         // the other players will still be in the dark
         this._startPlaying((this.dealer+1)%this.numberOfPlayers);
@@ -336,7 +363,7 @@ class RikkenTheGame extends PlayerEventListener{
                     // pass along all the suites the player has (from which to choose from)
                     this._players[this._player].chooseTrumpSuite(this._players[this._player].getSuites());
                 }else // trump is known (which can only be hearts) TODO what if this player does not have any trump cards?????????
-                    this._setTrumpSuite(SUITE_NAMES.indexOf("heart")); // set the trump suite directly!!!
+                    this.trumpSuite=SUITE_NAMES.indexOf("heart"); // set the trump suite directly!!!
             }else // not a trump suite
                 // played by the highest bidder on his own
                 this._startPlaying((this.dealer+1)%this.numberOfPlayers);
@@ -349,15 +376,22 @@ class RikkenTheGame extends PlayerEventListener{
     // check whether 'troela', and if so initialize the play accordingly
     _checkForTroela(){
         let threeAcePlayer=-1,oneAcePlayer=-1; // determine the player with 1 and 3 aces
-        // get the number of aces each player has
+        let oneAceSuite=-1; // if a player has one ace remember which ace
         for(let player=this.numberOfPlayers-1;player>=0;player--){
-            let aces=this._players[player].getNumberOfCardsWithRank(RANK_ACE);
-            console.log("Number of aces in hand '"+this._players[player].name+"': "+aces+".");
+            // get the aces the player has
+            let aceSuites=this._players[player].getSuitesWithRank(RANK_ACE);
+            let aces=aceSuites.length;
+            console.log("Number of aces in "+this._players[player].name+"'s hand: "+aces+".");
+            if(aces==0)continue; // (OOPS almost forgot this one) still possible
             if(aces==2||aces==4)break; // if a player has either 2 or 4 aces no player can have 3
-            if(aces==3)threeAcePlayer=player;else oneAcePlayer=player;
+            if(aces==1){oneAcePlayer=player;oneAceSuite=aceSuites[0];}else threeAcePlayer=player;
         }
-        this._highestBidPlayers=[threeAcePlayer]; // TODO perhaps this should be done elsewhere?????
-        this.fourthAcePlayer=(threeAcePlayer>=0?oneAcePlayer:-1);
+        if(threeAcePlayer>=0){
+            this._highestBidPlayers.push(threeAcePlayer); // TODO perhaps this should be done elsewhere?????
+            this.fourthAcePlayer=oneAcePlayer;
+            this._trumpSuite=oneAceSuite;
+        }else
+            this.fourthAcePlayer=-1;
     }
 
     // public methods
@@ -447,22 +481,29 @@ class RikkenTheGame extends PlayerEventListener{
      * to be called by the player with the highest bid when selecting the trump suite
      */
     trumpSuiteChosen(){
-        console.log("Trump suite chosen by a player!");
-        this._setTrumpSuite(this._players[this._player].trumpSuite);
+        let trumpSuiteChosen=this._players[this._player].trumpSuite;
+        console.log("Trump suite #"+trumpSuiteChosen+" chosen by a player!");
+        this.trumpSuite=trumpSuiteChosen;
     }
     /**
      * to be called by the player with the highest bid when selecting the partner suite
      */
     partnerSuiteChosen(){
-        this._setPartnerSuite(this._players[this._player].partnerSuite);
+        let parentSuiteChosen=this._players[this._player].parentSuite;
+        console.log("Parent suite #"+parentSuiteChosen+" chosen.");
+        this.partnerSuite=partnerSuiteChosen;
     }
+
+    getTrickAtIndex(index){return(index>=0&&index<this._tricks.length?this._tricks[index]:null);}
 
     cardPlayed(){
         console.log("Card played");
+        let numberOfPlayerCards=this._players[this._player].numberOfCards;
         let card=this._players[this._player].card;
         // move the card into the trick (effectively removing it from the player cards)
         this._trick.addCard(card);
         if(card._holder!==this._trick)throw new Error("Failed to add the card to the trick!");
+        if(this._players[this._player].numberOfCards>=numberOfPlayerCards)throw new Error("Played card not removed from player hand!");
         // is the trick complete?
         if(this._trick.numberOfCards==4){ // no more nulls in the trick
             // 1. register the trick
@@ -493,19 +534,20 @@ class RikkenTheGame extends PlayerEventListener{
                 }else
                     console.error("Asking for the partner card blind, but partner card not in trick!!!!");
             }else{
-                let highestCardPlayer=this._trick.firstPlayer;
-                let playSuite=this._trick._cards[highestCardPlayer].suite;
+                let highestCardPlayer=0;
                 for(let player=1;player<4;player++)
-                    if(compareCardsWithPlayAndTrumpSuite(this._trick._cards[player],this._trick._cards[highestCardPlayer],this._trumpSuite)>0)
+                    if(compareCardsWithPlayAndTrumpSuite(this._trick._cards[player],this._trick._cards[highestCardPlayer],this._trick.playSuite,this._trumpSuite)>0)
                         highestCardPlayer=player;
+                // the player to start the next trick is the winner
+                this._player=(highestCardPlayer+this._trick.firstPlayer)%4;
+                this._trick.winner=this._player; // store the winner in the trick!!!
                 // register the trick with the player who won
-                this._players[highestCardPlayer].trickWon(this._tricks.length);
-                this._player=highestCardPlayer;
+                this._players[this._player].trickWon(this._tricks.length);
                 console.log("The trick was won by player #"+highestCardPlayer+": '"+this._players[highestCardPlayer].name+"'.");
             }
             // game over?????? i.e. all 13 tricks complete
             if(this._tricks.length==13){
-                this.state=FINISHING;
+                this.state=FINISHED;
                 return;
             }
             // initialize a new trick with the first player to play
@@ -513,7 +555,7 @@ class RikkenTheGame extends PlayerEventListener{
         }else // not yet, more cards to play in this trick
             this._player=(this._player+1)%4;
         // and ask the new current player to play a card
-        this._players[this._player].playACard(this._getTrickObjects());
+        this._players[this._player].playACard(this._getTrickObjects(),this._trick.playSuite,this._trick.canAskForPartnerCardBlind);
     }
     // end PlayerEventListener implementation
 
@@ -587,6 +629,10 @@ class RikkenTheGame extends PlayerEventListener{
 
     get bid(){return this._bid;} // the bid so far
     get player(){return this._player;}
+
+    get trumpSuite(){return this._trumpSuite;}
+    get partnerSuite(){return this._partnerSuite;}
+    get partnerRank(){return this._partnerRank;}
 
     start(){
         if(this._state!==IDLE)this.state=IDLE; // if not in the IDLE state go there first

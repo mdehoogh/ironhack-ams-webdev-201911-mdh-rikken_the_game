@@ -12,7 +12,7 @@ class CardHolder{
     }
 
     // methods to adjust the card collection
-    removeCard(card){
+    _removeCard(card){
         let cardIndex=this._cards.indexOf(card);
         if(cardIndex>=0){
             if(this._cards.splice(cardIndex,1).length==1){
@@ -23,9 +23,10 @@ class CardHolder{
         }else
             console.error("Unable to remove card "+card+" from "+this.toString()+": it is not present.");
     }
-    addCard(card){
+    _addCard(card){
         if(!card)return;
         if(!(card instanceof HoldableCard))throw new Error("Not a holdable card!");
+        console.log("Adding card "+card.toString()+" to "+this.toString()+".");
         let numberOfCardsNow=this.numberOfCards;
         this._cards.push(card);
         if(this.numberOfCards>numberOfCardsNow){
@@ -38,7 +39,7 @@ class CardHolder{
             console.error("Failed to add card "+card+" to "+this.toString()+" (delta number of cards: "+(this.numberOfCards-numberOfCardsNow)+").");
     }
     // replace a card at a given index (as used in Trick)
-    setCardAtIndex(card,index){
+    _setCardAtIndex(card,index){
         if(index<0||index>=this.numberOfCards)throw new Error("Can't replace card #"+String(index+1)+".");
         let cardAtIndex=this._cards[index];
         if(cardAtIndex){cardAtIndex._holder=null;this._cards[index]=null;}
@@ -65,6 +66,15 @@ class CardHolder{
         // can't use this in filter!!! return [0,1,2,3].filter((rank)=>{return this.getCardsWithRank(rank)>0;});
         let suites=[];
         this._cards.forEach((card)=>{if(suites.indexOf(card.suite)<0)suites.push(card.suite);});
+        return suites;
+    }
+    /**
+     * returns the number of cards in the holder with the given rank
+     * @param {*} rank 
+    */
+    getSuitesWithRank(rank){
+        let suites=[];
+        this._cards.forEach((card)=>{if(card.rank===rank)suites.push(card.suite);});
         return suites;
     }
     /**
@@ -127,9 +137,9 @@ class HoldableCard extends Card{
     set holder(holder){
         console.log("\tChanging the holder of card "+this.toString()+".");
         // remove from the current holder (if any)
-        if(this._holder)this._holder.removeCard(this);
+        if(this._holder)this._holder._removeCard(this);
         // add (when successfully removed) to the new holder (if any)
-        if(!this._holder&&holder)holder.addCard(this);else console.error("Unable to change the holder!");
+        if(!this._holder&&holder)holder._addCard(this);else console.error("Unable to change the holder!");
     }
 
     constructor(cardSuiteIndex,cardNameIndex,holder){
