@@ -120,11 +120,27 @@ function showTrick(trick,playerIndex){
     showName(document.getElementById("player-opposite-name"),rikkenTheGame.getPlayerName((playerIndex+2)%4),(playerIndex+2)%4===partnerIndex);
     showName(document.getElementById("player-right-name"),rikkenTheGame.getPlayerName((playerIndex+3)%4),(playerIndex+3)%4===partnerIndex);
     // show the trick cards played by the left, opposite and right player
-    showCard(document.getElementById("player-left-card"),trick.getPlayerCard((playerIndex+1)%4),trick.trumpSuite,
+    // NOTE the first card could be the blind card asking for the partner card in which case we should not show it!!
+    //      but only the color of the partner suite
+    let askingForPartnerCardBlind=(trick.numberOfCards>0&&trick._cards[0].suite!==trick.playSuite);
+    let playerAskingForPartnerCardBlindIndex=(askingForPartnerCardBlind?(4+trick.firstPlayer-playerIndex)%4:0);
+    if(playerAskingForPartnerCardBlindIndex==1){
+        document.getElementById("player-left-card").innerHTML=SUITE_CHARACTERS[trick.playSuite];
+        setSuiteCard(document.getElementById("player-left-card"),trick.playSuite);
+    }else
+        showCard(document.getElementById("player-left-card"),trick.getPlayerCard((playerIndex+1)%4),trick.trumpSuite,
                 (trick.winner===(playerIndex+1)%4?(rikkenTheGame.isPlayerPartner(playerIndex,(playerIndex+1)%4)?1:-1):0));
-    showCard(document.getElementById("player-opposite-card"),trick.getPlayerCard((playerIndex+2)%4),trick.trumpSuite,
+    if(playerAskingForPartnerCardBlindIndex==2){
+        document.getElementById("player-opposite-card").innerHTML=SUITE_CHARACTERS[trick.playSuite];
+        setSuiteCard(document.getElementById("player-opposite-card"),trick.playSuite);
+    }else
+        showCard(document.getElementById("player-opposite-card"),trick.getPlayerCard((playerIndex+2)%4),trick.trumpSuite,
                 (trick.winner===(playerIndex+2)%4?(rikkenTheGame.isPlayerPartner(playerIndex,(playerIndex+2)%4)?1:-1):0));
-    showCard(document.getElementById("player-right-card"),trick.getPlayerCard((playerIndex+3)%4),trick.trumpSuite,
+    if(playerAskingForPartnerCardBlindIndex==3){
+        document.getElementById("player-right-card").innerHTML=SUITE_CHARACTERS[trick.playSuite];
+        setSuiteCard(document.getElementById("player-right-card"),trick.playSuite);
+    }else
+        showCard(document.getElementById("player-right-card"),trick.getPlayerCard((playerIndex+3)%4),trick.trumpSuite,
                 (trick.winner===(playerIndex+3)%4?(rikkenTheGame.isPlayerPartner(playerIndex,(playerIndex+3)%4)?1:-1):0));
 }
 /* replacing:
@@ -391,9 +407,9 @@ class OnlinePlayer extends Player{
     }
     // almost the same as the replaced version except we now want to receive the trick itself
     playACard(trick){
+        currentPlayer=this;
         // if this is a new trick update the tricks played table with the previous trick
         if(trick.numberOfCards==0)updateTricksPlayedTable();
-        currentPlayer=this;
         document.getElementById("can-ask-for-partner-card-blind").style.display=(trick.canAskForPartnerCardBlind?"block":"none");
         // always start unchecked...
         document.getElementById("ask-for-partner-card-blind").checked=false; // when clicked should generate 
@@ -410,8 +426,8 @@ class OnlinePlayer extends Player{
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
         setInfo(this.name+", welke "+(trick.playSuite>=0?DUTCH_SUITE_NAMES[trick.playSuite]:"kaart")+" wil je "+(trick.numberOfCards>0?"bij":"")+"spelen?");
         updatePlayerSuiteCards(this._suiteCards=this._getSuiteCards()); // remember the suite cards!!!!
-        // show the trick from the viewpoint of the current player
-        showTrick(trick,this._index);
+        // show the trick (remembered in the process for use in cardPlayed below) from the viewpoint of the current player
+        showTrick(this._trick=trick,this._index);
     }
     /* replacing:
     playACard(trickObjects,playSuite,canAskForPartnerCardBlind){
@@ -444,11 +460,43 @@ class OnlinePlayer extends Player{
         this._partnerSuite=partnerSuite;
         this.partnerSuiteChosen();
     }
-    setCardSuiteAndIndex(suite,index){
+    // not to be confused with _cardPlayed() defined in the base class Player which informs the game
+    // NOTE cardPlayed is a good point for checking the validity of the card played
+    cardPlayed(suite,index){
         let card=(suite<this._suiteCards.length&&this._suiteCards[suite].length?this._suiteCards[suite][index]:null);
-        if(card)
-            this.setCard(card);
-        else
+        if(card){
+            this._trick.askingForPartnerCard=0; // -1 when asking blind, 0 not asking, 1 if asking
+            // CAN'T call _setCard (in base class Player) if the card cannot be played!!!
+            if(this._trick.numberOfCards==0){ // first card in the trick played
+                // theoretically the card can be played but it might be the card with which the partner card is asked!!
+                // is this a game where there's a partner card that hasn't been played yet
+                // alternatively put: should there be a partner and there isn't one yet?????
+                if(this._trick.trumpPlayer==this._index){ // this is trump player is playing the first card
+                    if(this._partner<0){ // partner not known yet, therefore the partner card has not been played yet
+                        // so, could be asking
+                        // not asking when playing trump!!
+                        if(suite!=this._trick.trumpSuite){
+                            if(suite!=this._trick.partnerSuite){ // it's not the partner suite itself
+                                if(this._getNumberOfCardsOfSuite(this._trick.partnerSuite)==0){ // has to ask the partner card blind!
+                                    if(confirm("Wilt U de "+DUTCH_RANK_NAMES[this._trick.partnerRank]+" blind opvragen?"))
+                                        this._trick.askingForPartnerCard=-1;
+                                }
+                            }else // definitely asking
+                                this._trick.askingForPartnerCard=1;
+                        }
+                    }
+                // if playing the partner suite
+                    // if trump is being played definitely not prompting for the partner card
+                }    
+            }else{ // not the first card in the trick played
+                // the card needs to be the same suite as the play suite (if the player has any)
+                if(suite!==this._trick.playSuite&&this.getNumberOfCardsWithSuite(this._trick.playSuite)>0){
+                    alert("Je kunt "+card.getTextRepresentation()+" niet spelen, want "+DUTCH_SUITE_NAMES[this._trick.playSuite]+" is gevraagd.");
+                    return;
+                }
+            }
+            this._setCard(card);
+        }else
             alert("Invalid card suite "+String(suite)+" and suite index "+String(index)+".");
     }
 }
@@ -495,7 +543,7 @@ function partnerSuiteButtonClicked(event){
 function playablecardButtonClicked(event){
     let playablecardCell=event.currentTarget;
     ////////if(playablecardCell.style.border="0px")return; // empty 'unclickable' cell
-    currentPlayer.setCardSuiteAndIndex(parseInt(playablecardCell.getAttribute("data-suite-id")),parseInt(playablecardCell.getAttribute("data-suite-index")));
+    currentPlayer.cardPlayed(parseInt(playablecardCell.getAttribute("data-suite-id")),parseInt(playablecardCell.getAttribute("data-suite-index")));
 }
 
 function newGame(players){
@@ -536,9 +584,11 @@ class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
                 setPage("page-playing");
                 break;
             case FINISHED:
-                if(playmode!==PLAYMODE_DEMO){
+                if(playmode==PLAYMODE_DEMO){// show me the last trick played...
+                    updateTricksPlayedTable();
+                    // TODO perhaps we might as well clear the played cards!!!!
+                }else
                     setPage("page-finished");
-                }
                 break;
         }
         console.log("ONLINE >>> The state of rikkenTheGame changed to '"+tostate+"'.");

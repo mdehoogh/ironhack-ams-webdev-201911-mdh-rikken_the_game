@@ -38,6 +38,7 @@ class CardHolder{
         }else
             console.error("Failed to add card "+card+" to "+this.toString()+" (delta number of cards: "+(this.numberOfCards-numberOfCardsNow)+").");
     }
+    /*
     // replace a card at a given index (as used in Trick)
     _setCardAtIndex(card,index){
         if(index<0||index>=this.numberOfCards)throw new Error("Can't replace card #"+String(index+1)+".");
@@ -51,14 +52,21 @@ class CardHolder{
             }catch(error){}
         }
     }
+    */
     // poll the card collection
     get numberOfCards(){return this._cards.length;}
+
     getCardsWithRank(rank){
         return this._cards.filter((card)=>{return card.rank==rank;});
     }
     getNumberOfCardsWithRank(rank){
         return this.getCardsWithRank(rank).length;
     }
+
+    getNumberOfCardsWithSuite(suite){
+        return this._cards.filter((card)=>{return card.suite==suite;}).length;
+    }
+
     /**
      * returns the ids of the suites present
      */

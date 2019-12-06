@@ -125,15 +125,16 @@ class Player extends CardHolder{
     // to signal having played a card
     get card(){return this._card;}
 
-    cardPlayed(){
+    _cardPlayed(){
         if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});
         if(this._game)this._game.cardPlayed();
     }
 
     // TODO a bid setter will allow subclasses to pass a bid by setting the property
-    setCard(card){
+    _setCard(card){
+        // technically checking whether the played card is valid should be done here, or BEFORE calling setCard
         this._card=card;
-        this.cardPlayed();
+        this._cardPlayed();
     }
 
     // to signal having choosen a trump suite
@@ -248,7 +249,7 @@ class Player extends CardHolder{
             if(isNaN(cardId))continue;
             cardPlayIndex=cardId-1;
         }
-        this.card=this._cards[cardPlayIndex];
+        this._setCard(this._cards[cardPlayIndex]);
     }
 
     trickWon(trickIndex){
