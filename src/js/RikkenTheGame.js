@@ -199,6 +199,14 @@ class RikkenTheGame extends PlayerEventListener{
 
     getPlayerName(playerIndex){let player=this.getPlayerAtIndex(playerIndex);return(player?player.name:null);}
 
+    // if asked for the team name adds the name of the partner as well
+    getTeamName(playerIndex){
+        let teamName="";
+        let player=this.getPlayerAtIndex(playerIndex);
+        if(player){teamName=player.name;if(player.partner>=0)teamName+"+"+this.getPlayerName(player.partner);}
+        return(teamName.length>0?teamName:"?");
+    }
+
     isPlayerPartner(playerIndex,partnerIndex){let player=this.getPlayerAtIndex(playerIndex);return(player?partnerIndex===player.partner:false);}
 
     getHighestBidders(){return this._highestBidPlayers;} // return all players that play the highest bid (possibly more than one)
@@ -633,7 +641,7 @@ class RikkenTheGame extends PlayerEventListener{
                 if(partner>=0){
                     this._partnerCardPlayedStatus=1; // this means the user cannot ask for this card again!!!
                     // the partner is now known, so everyone now knows its partner
-                    this._setPartners([this._highestBidPlayers[0],partner]);
+                    this._setPartners(this._highestBidPlayers[0],partner);
                     /* replacing:
                     this._players[this._highestBidPlayers[0]].partner=partner;
                     this._players[partner].partner=this.highestBidPlayers[0];

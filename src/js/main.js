@@ -241,7 +241,8 @@ function updateTricksPlayedTable(){
             cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
             // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
         }
-        row.children[5].innerHTML=rikkenTheGame.getPlayerName(trick.winner); // show who won the trick!!
+        row.children[5].innerHTML=rikkenTheGame.getTeamName(trick.winner); // show who won the trick!!
+        row.children[6].innerHTML=rikkenTheGame.getPlayerAtIndex(trick.winner).getNumberOfTricksWon(); // show who won the trick!!
     }
 }
 
@@ -407,7 +408,7 @@ class OnlinePlayer extends Player{
         document.getElementById("tricks-to-win").innerHTML=getNumberOfTricksToWinText(this._numberOfTricksToWin);
         this._card=null; // get rid of any currently card
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
-        setInfo(this.name+", welke "+(trick.playSuite>=0?SUITE_NAMES[trick.playSuite]:"kaart")+" wil je "+(trick.numberOfCards>0?"bij":"")+"spelen?");
+        setInfo(this.name+", welke "+(trick.playSuite>=0?DUTCH_SUITE_NAMES[trick.playSuite]:"kaart")+" wil je "+(trick.numberOfCards>0?"bij":"")+"spelen?");
         updatePlayerSuiteCards(this._suiteCards=this._getSuiteCards()); // remember the suite cards!!!!
         // show the trick from the viewpoint of the current player
         showTrick(trick,this._index);
