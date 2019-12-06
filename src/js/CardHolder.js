@@ -101,6 +101,12 @@ class CardHolder{
 
     getFirstCard(){if(this._cards.length>0)return this._cards[0];}
 
+    containsCard(suite,rank){
+        let card=this._cards.length;
+        while(--card>=0&&(this._cards[card].suite!==suite||this._cards[card].rank!==rank));
+        return(card>=0); // found if card is not negative
+    }
+
     /**
      * can expose a text represention
      */

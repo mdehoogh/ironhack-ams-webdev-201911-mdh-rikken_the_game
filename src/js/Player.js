@@ -34,7 +34,9 @@ class Player extends CardHolder{
         // the game being played, and the index within that game
         this._playerIndex=-1;
         this._game=null;
+        this._partner=-1;
         this._tricksWon=[]; // the tricks won (in any game)
+        this._numberOfTricksToWin=-1; // doesn't matter
         this._askingForPartnerCardBlind=false;
         this.addEventListener(playerEventListener);
     }
@@ -45,6 +47,8 @@ class Player extends CardHolder{
 
     // getters exposing information to the game (after making a bid, playing a card or choosing trump or partner)
     get bid(){return this._bid;}
+
+    get partner(){return this._partner;}
 
     //////////////get card(){return this._cards[this._cardPlayIndex];}
 
@@ -252,10 +256,10 @@ class Player extends CardHolder{
         console.log("Trick #"+trickIndex+" won by '"+this.name+"': "+this._tricksWon+".");
     }
 
-    getNumberOfTricksWon(){return this.tricksWon.length;}
+    getNumberOfTricksWon(){return this._tricksWon.length;}
 
-    toString(){
-        return this.name;
-    }
+    setNumberOfTricksToWin(numberOfTricksToWin){this._numberOfTricksToWin=numberOfTricksToWin;}
+
+    toString(){return this.name;}
 
 }

@@ -40,7 +40,20 @@ function compareCards(card1,card2){
 // in a trick the play suite determines what cards are to be played, the trump suite determines what trump is
 function compareCardsWithPlayAndTrumpSuite(card1,card2,playSuite,trumpSuite){
     // normally with any two regular cards they are never equal in a trick
-    // the cards can be of the same suite 
+    // cards that are neither play suite or trump suite is irrelevant
+    let result=0;
+    let type='-';
+    // 1. if card1 is trump, and card2 is not or has a lower rank card1 wins
+    if(card1.suite==trumpSuite){result=(card2.suite!=trumpSuite?1:card1.rank-card2.rank);type='A';}else
+    // ASSERT card1 is NOT trump but card2 could still be trump
+    if(card2.suite==trumpSuite){result=-1;type='B';}else
+    // ASSERT neither card is trump, so could be play suite or not...
+    if(card1.suite==playSuite){result=(card2.suite!=playSuite?1:card1.rank-card2.rank);type='C';}else
+    // ASSERT card1 is not play suite, but card2 could be
+    if(card2.suite==playSuite){result=-1;type='D';}
+    console.log('>>> Type: '+type+': '+card1.getTextRepresentation()+"(suite: "+card1.suite+")"+(result>0?' > ':(result<0?' < ':' = '))+card2.getTextRepresentation()+" (suite: "+card2.suite+")"+" (play: "+(playSuite>=0?SUITE_NAMES[playSuite]:"?")+", trump:"+((trumpSuite>=0?SUITE_NAMES[trumpSuite]:"?"))+")");
+    return result;
+    /* replacing:
     // let's first recompute the suite of both cards and elevate trump cards, and deevaluate non playSuite cards
     let card1Suite=(card1.suite==trumpSuite?4:(card1.suite!=playSuite?-1:card1.suite));
     let card2Suite=(card1.suite==trumpSuite?4:(card2.suite!=playSuite?-1:card2.suite));
@@ -53,5 +66,7 @@ function compareCardsWithPlayAndTrumpSuite(card1,card2,playSuite,trumpSuite){
         // ASSERT one card is play suite, the other must be trump suite
         return(card1Suite==4?1:-1);
     }
+    */
+    // ASSERT neither card is play suite or trump suite, both cards are irrelevant (should happen though)
     return 0; // considered equal that is irrelevant
 }

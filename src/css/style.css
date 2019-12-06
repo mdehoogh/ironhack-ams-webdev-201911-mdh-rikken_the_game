@@ -38,7 +38,7 @@ body {
 }
 
 input[type=button] {
-    font-size:2.5rem;
+    font-size:1.25rem;
 }
 
 .pages {
@@ -54,11 +54,17 @@ input[type=button] {
 }
 
 .separator {
-    background:white;
-    height:5px;
+    background:grey;
+    height:2px;
     width:100%;
-    margin-left:10px;
-    margin-right:10px;
+    /* margin-left:10px;
+    margin-right:10px; */
+}
+
+td, th {
+    text-align:center;
+    font-size:1rem;
+    height:1rem;
 }
 
 .page {
@@ -128,6 +134,10 @@ input[type=button] {
 }
 */
 
+.bid-partner{
+    font-size:2rem;
+}
+
 /* show the bids buttons in a row wrapping to the next line if possible */
 .bid-buttons{
     display:flex;
@@ -135,9 +145,9 @@ input[type=button] {
 }
 
 .bid input[type=button] {
-    margin:10px;
-    padding:5px;
-
+    margin:16px;
+    padding:8px;
+    font-size:20px;
 }
 
 /* playing page */

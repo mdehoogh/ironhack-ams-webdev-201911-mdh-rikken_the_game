@@ -51,6 +51,22 @@ function toggleBidderCards(event){
     }
 }
 */
+
+/**
+ * shows the current player names at the start of the game
+ */
+function showPlayerNames(){
+    // in the header row of the tricks played table
+    let tricksPlayedTableHeader=document.getElementById("tricks-played-table").querySelector("thead");
+    let row=tricksPlayedTableHeader.children[0]; // the row we're interested in filling
+    for(player=0;player<rikkenTheGame.numberOfPlayers;player++){
+        let cell=row.children[player+1]; // use player to get the 'real' player column!!
+        let playerName=rikkenTheGame.getPlayerName(player);
+        console.log("Name of player #"+(player+1)+": '"+playerName+"'.");
+        cell.innerHTML=playerName;
+    }
+}
+
 /**
  * clears the bid table
  * to be called with every new game
@@ -61,11 +77,58 @@ function clearBidTable(){
         for(let bidTableColumn of bidTableRow.children)
             bidTableColumn.innerHTML="";
 }
+
+function setSuiteClass(element,suite){
+    // remove the currently assigned suite
+    element.classList.remove(SUITE_NAMES[parseInt(element.getAttribute("data-suite-id"))]);
+    element.setAttribute("data-suite-id",String(suite));
+    element.classList.add(SUITE_NAMES[parseInt(element.getAttribute("data-suite-id"))]);
+}
+function showCard(element,card,trumpSuite,winnerSign){
+    if(card){
+        setSuiteClass(element,card.suite); // we want to see the right color
+        let elementIsTrump=element.classList.contains("trump");
+        let elementShouldBeTrump=(card.suite===trumpSuite);
+        if(elementIsTrump!==elementShouldBeTrump)element.classList.toggle("trump");
+        element.innerHTML=card.getTextRepresentation();
+        if(winnerSign!=0)element.innerHTML+="*";
+        /* replacing: 
+        // if this is the card of the winner so far it can be either + or -
+        if(winnerSign>0)element.innerHTML+='+';else if(winnerSign<0)element.innerHTML+='-';
+        */
+    }else
+        element.innerHTML="";
+}
+
+function showName(element,name,ispartner){
+    element.innerHTML=(name?name:"?");
+    element.style.color=(ispartner?"green":"black");
+}
 /**
  * shows the given trick
  * @param {*} trick 
  */
-function showTrick(trickObjects,playSuite){
+function showTrick(trick,playerIndex){
+    console.log("Showing trick ",trick);
+    // TODO do we need the play suite for anything??????
+    //let tablebody=document.getElementById("trick-cards-table").requestSelector("tbody");
+    // show the player names
+    let partnerIndex=rikkenTheGame.getPartner(playerIndex);
+    console.log(">>> Partner of "+rikkenTheGame.getPlayerName(playerIndex)+": "+rikkenTheGame.getPlayerName(partnerIndex)+".");
+    showName(document.getElementById("player-name"),rikkenTheGame.getPlayerName(playerIndex),false);
+    showName(document.getElementById("player-left-name"),rikkenTheGame.getPlayerName((playerIndex+1)%4),(playerIndex+1)%4===partnerIndex);
+    showName(document.getElementById("player-opposite-name"),rikkenTheGame.getPlayerName((playerIndex+2)%4),(playerIndex+2)%4===partnerIndex);
+    showName(document.getElementById("player-right-name"),rikkenTheGame.getPlayerName((playerIndex+3)%4),(playerIndex+3)%4===partnerIndex);
+    // show the trick cards played by the left, opposite and right player
+    showCard(document.getElementById("player-left-card"),trick.getPlayerCard((playerIndex+1)%4),trick.trumpSuite,
+                (trick.winner===(playerIndex+1)%4?(rikkenTheGame.isPlayerPartner(playerIndex,(playerIndex+1)%4)?1:-1):0));
+    showCard(document.getElementById("player-opposite-card"),trick.getPlayerCard((playerIndex+2)%4),trick.trumpSuite,
+                (trick.winner===(playerIndex+2)%4?(rikkenTheGame.isPlayerPartner(playerIndex,(playerIndex+2)%4)?1:-1):0));
+    showCard(document.getElementById("player-right-card"),trick.getPlayerCard((playerIndex+3)%4),trick.trumpSuite,
+                (trick.winner===(playerIndex+3)%4?(rikkenTheGame.isPlayerPartner(playerIndex,(playerIndex+3)%4)?1:-1):0));
+}
+/* replacing:
+function showTrickObjects(trickObjects,playSuite){
     console.log("Showing trick objects: "+trickObjects+".");
     document.getElementById("play-suite").innerHTML=(playSuite>=0?"Er wordt "+SUITE_NAMES[playSuite]+" gespeeld!":"Slag "+String(rikkenTheGame.numberOfTricksPlayed+1));
     // the trick object contains the cards played by name
@@ -76,13 +139,14 @@ function showTrick(trickObjects,playSuite){
             trickLabel.classList.add(SUITE_NAMES[trickObject.card.suite]);
             /// replacing: trickLabel.style.color=SUITE_COLORS[trickObject.card.suite%2]; // in the right color
             // showing the name is not necessary per se
-            trickLabel.innerHTML=/*trickObject.name+": "+*/trickObject.card.getTextRepresentation();
+            trickLabel.innerHTML=trickObject.card.getTextRepresentation();
             trickLabel.style.display="initial";
         }else
             trickLabel.style.display="none";
     }
     console.log("Trick shown!");
 }
+*/
 /* obsolete now:
 function askForCard(){
     // I guess I should place the cards of the current player on screen
@@ -156,20 +220,28 @@ function updatePlayerSuiteCards(suiteCards){
     console.log("Current player cards to choose from shown!");
 }
 
+function clearTricksPlayedTable(){
+    let tricksPlayedTableBody=document.getElementById("tricks-played-table").querySelector("tbody");
+    for(let tricksPlayedTableCell of tricksPlayedTableBody.querySelectorAll('td'))
+        tricksPlayedTableCell.innerHTML="";
+}
 function updateTricksPlayedTable(){
     let lastTrickPlayedIndex=rikkenTheGame.numberOfTricksPlayed-1;
     if(lastTrickPlayedIndex>=0){
         let trick=rikkenTheGame.getTrickAtIndex(lastTrickPlayedIndex);
         let tricksPlayedTablebody=document.getElementById("tricks-played-table").querySelector("tbody");
         let row=tricksPlayedTablebody.children[lastTrickPlayedIndex]; // the row we're interested in filling
+        row.children[0].innerHTML=String(rikkenTheGame.numberOfTricksPlayed);
         for(trickPlayer=0;trickPlayer<trick._cards.length;trickPlayer++){
             let player=(trickPlayer+trick.firstPlayer)%4;
             let cell=row.children[player+1]; // use player to get the 'real' player column!!
             let card=trick._cards[trickPlayer];
-            cell.innerHTML=card.getTextRepresentation();
-            if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!!
-            cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
+            cell.innerHTML=String(trickPlayer+1)+": "+card.getTextRepresentation();
+            if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!
+            cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
+            // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
         }
+        row.children[5].innerHTML=rikkenTheGame.getPlayerName(trick.winner); // show who won the trick!!
     }
 }
 
@@ -203,8 +275,10 @@ function getGameInfo(){
             if(highestBid==BID_TROELA){
                 let troelaPlayer=rikkenTheGame.getPlayerAtIndex(highestBidder);
                 gameInfo=troelaPlayer.name+" heeft troela, en ";
-                gameInfo+=rikkenTheGame.getPlayerAtIndex(rikkenTheGame.fourthAcePlayer)+" is mee. ";
-                gameInfo+=capitalize(DUTCH_SUITE_NAMES[trumpSuite])+" is troef.";
+                gameInfo+=rikkenTheGame.getPlayerAtIndex(rikkenTheGame.fourthAcePlayer)+" is mee.";
+                /* you cannot show this unless the ace has been thrown!!!
+                gameInfo+=" "+capitalize(DUTCH_SUITE_NAMES[trumpSuite])+" is troef.";
+                */
                 /*
                 +", want ";
                 // TODO why does troelaPlayer does NOT have a proper partner: troelaPlayer.partner
@@ -234,6 +308,31 @@ function getGameInfo(){
 
 function askingForPartnerCardBlind(event){
     currentPlayer.askingForPartnerCardBlind=event.currentTarget.checked;
+}
+function getNumberOfTricksToWinText(numberOfTricksToWin){
+    switch(numberOfTricksToWin){
+        case 0:
+            return "Geeneen";
+        case 1:
+            return "Precies een";
+        case 6:
+            return "Zes om de rikkers te laten verliezen";
+        case 8:
+            return "Acht samen met je partner om de rik te winnen";
+        case 9:
+            return "Negen alleen";
+        case 10:
+            return "Tien alleen";
+        case 11:
+            return "Elf alleen";
+        case 12:
+            return "Twaalf alleen";
+        case 13:
+            return "Allemaal";
+        case 14:
+            return "Maakt niet uit mits niet de laatste slag of een slag met de schoppen vrouw";
+    }
+    return "Maakt niet uit";
 }
 
 class OnlinePlayer extends Player{
@@ -289,6 +388,31 @@ class OnlinePlayer extends Player{
             suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
         document.getElementById('partner-rank').innerHTML=partnerRankName;
     }
+    // almost the same as the replaced version except we now want to receive the trick itself
+    playACard(trick){
+        // if this is a new trick update the tricks played table with the previous trick
+        if(trick.numberOfCards==0)updateTricksPlayedTable();
+        currentPlayer=this;
+        document.getElementById("can-ask-for-partner-card-blind").style.display=(trick.canAskForPartnerCardBlind?"block":"none");
+        // always start unchecked...
+        document.getElementById("ask-for-partner-card-blind").checked=false; // when clicked should generate 
+        if(rikkenTheGame.numberOfTricksPlayed==0)document.getElementById("game-info").innerHTML=getGameInfo();
+        document.getElementById("card-player").innerHTML=this.name;
+        document.getElementById("trick-playsuite").innerHTML=(trick.playSuite>=0?DUTCH_SUITE_NAMES[trick.playSuite].toLowerCase():"kaart");
+        let numberOfTricksWon=this.getNumberOfTricksWon();
+        // add the tricks won by the partner
+        if(this.partner>=0)numberOfTricksWon+=rikkenTheGame.getPlayerAtIndex(this.partner).getNumberOfTricksWon();
+        document.getElementById("tricks-won-so-far").innerHTML=String(numberOfTricksWon);
+        // show the number of tricks this player is supposed to win in total
+        document.getElementById("tricks-to-win").innerHTML=getNumberOfTricksToWinText(this._numberOfTricksToWin);
+        this._card=null; // get rid of any currently card
+        console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
+        setInfo(this.name+", welke "+(trick.playSuite>=0?SUITE_NAMES[trick.playSuite]:"kaart")+" wil je "+(trick.numberOfCards>0?"bij":"")+"spelen?");
+        updatePlayerSuiteCards(this._suiteCards=this._getSuiteCards()); // remember the suite cards!!!!
+        // show the trick from the viewpoint of the current player
+        showTrick(trick,this._index);
+    }
+    /* replacing:
     playACard(trickObjects,playSuite,canAskForPartnerCardBlind){
         // if this is a new trick update the tricks played table with the previous trick
         if(trickObjects.length==0)updateTricksPlayedTable();
@@ -307,8 +431,9 @@ class OnlinePlayer extends Player{
         console.log("ONLINE >>> Player '"+this.name+"' should play a card!");
         setInfo(this.name+", welke "+(playSuite>=0?SUITE_NAMES[playSuite]:"kaart")+" wil je "+(trickObjects.length>0?"bij":"")+"spelen?");
         updatePlayerSuiteCards(this._suiteCards=this._getSuiteCards()); // remember the suite cards!!!!
-        showTrick(trickObjects,playSuite);
+        showTrickObjects(trickObjects,playSuite);
     }
+    */
     // setter to set the trump and partner suite once the corresponding button is clicked
     set trumpSuite(trumpSuite){
         this._trumpSuite=trumpSuite;
@@ -343,7 +468,8 @@ function bidButtonClicked(event){
  */
 function trumpSuiteButtonClicked(event){
     // either trump or partner suite selected
-    let trumpSuite=event.currentTarget.getAttribute("data-suite");
+    // OOPS using parseInt() here is SOOOO important
+    let trumpSuite=parseInt(event.currentTarget.getAttribute("data-suite"));
     console.log("Trump suite "+trumpSuite+" chosen.");
     // go directly to the game (instead of through the player)
     rikkenTheGame.trumpSuite=trumpSuite;
@@ -354,7 +480,8 @@ function trumpSuiteButtonClicked(event){
  */
 function partnerSuiteButtonClicked(event){
     // either trump or partner suite selected
-    let partnerSuite=event.currentTarget.getAttribute("data-suite");
+    // parseInt VERY IMPORTANT!!!!
+    let partnerSuite=parseInt(event.currentTarget.getAttribute("data-suite"));
     console.log("Partner suite "+partnerSuite+" chosen.");
     // go directly to the game (instead of through the player)
     rikkenTheGame.partnerSuite=partnerSuite;
@@ -408,7 +535,9 @@ class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
                 setPage("page-playing");
                 break;
             case FINISHED:
-                setPage("page-finished");
+                if(playmode!==PLAYMODE_DEMO){
+                    setPage("page-finished");
+                }
                 break;
         }
         console.log("ONLINE >>> The state of rikkenTheGame changed to '"+tostate+"'.");
@@ -439,9 +568,19 @@ function setPage(newPage){
                             setInfo("Vul de namen van de spelers in. Een spelernaam is voldoende.");
                         }
                         break;
-                    case 3:setInfo("Wacht om de beurt op een verzoek tot het doen van een bod.");break;
+                    case 3:
+                        {
+                            setInfo("Wacht om de beurt op een verzoek tot het doen van een bod.");
+                        }
+                        break;
                     case 4:setInfo("Wacht op het verzoek tot het opgeven van de troefkleur en/of de aas/heer.");break;
-                    case 5:setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");break;
+                    case 7:
+                        {
+                            clearTricksPlayedTable();
+                            showPlayerNames();
+                            setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");
+                        }
+                        break;
                 }
             }
         }else
