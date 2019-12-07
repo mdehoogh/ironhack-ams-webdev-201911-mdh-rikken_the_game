@@ -144,10 +144,11 @@ td, th {
     flex-wrap:wrap;
 }
 
-.bid input[type=button] {
-    margin:16px;
-    padding:8px;
-    font-size:20px;
+.bid-buttons input[type=button] {
+    margin:4px 8px;
+    height:3rem;
+    /* padding:4px; */
+    font-size:1.4rem;
 }
 
 /* playing page */

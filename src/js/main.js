@@ -519,7 +519,8 @@ class OnlinePlayer extends Player{
                             this._trick.askingForPartnerCard=-1; // yes, asking blind!!
                             console.log("\tBLIND!");
                         }
-                    }
+                    }else
+                        console.log("Not indicated!!!!");
                     /* replacing:
                         // so, could be asking
                         // not asking when playing trump!!

@@ -48,6 +48,7 @@ class Trick extends CardHolder{
     // by passing in the trump player (i.e. the person that can ask for the partner card)
     constructor(firstPlayer,trumpSuite,canAskForPartnerCard){ // replacing: trumpSuite,partnerSuite,partnerRank,trumpPlayer){
         super(); // using 4 fixed positions for the trick cards so we will know who played them!!!!
+        console.log(">>> New trick can ask for partner card: "+canAskForPartnerCard+".");
         this._firstPlayer=firstPlayer;
         this._trumpSuite=trumpSuite; // for internal use to be able to determine the winner of a trick
         this._canAskForPartnerCard=canAskForPartnerCard; // -1 blind, 0 not, 1 non-blind
@@ -322,10 +323,12 @@ class RikkenTheGame extends PlayerGame{
         // theoretically the card can be played but it might be the card with which the partner card is asked!!
         // is this a game where there's a partner card that hasn't been played yet
         // alternatively put: should there be a partner and there isn't one yet?????
-        if(this.getTrumpPlayer()===this._player) // this is trump player is playing the first card
+        if(this.getTrumpPlayer()===this._player){ // this is trump player is playing the first card
             if(this._players[this._player].partner<0) // partner not known yet, therefore the partner card has not been played yet
                 // asking for the partner card is only possible when the player does not have the partner cards anymore
-                return(this._players[this._player].getNumberOfCardsWithSuite(this.getPartnerSuite)>0?1:-1);
+                return(this._players[this._player].getNumberOfCardsWithSuite(this.getPartnerSuite())>0?1:-1);
+            console.log("Partner known, so no need to ask for the partner card anymore!");
+        }
         return 0;
     }
     /**
@@ -442,6 +445,9 @@ class RikkenTheGame extends PlayerGame{
                     this._players[this._player].playACard(this._trick);
                 }
                 break;
+            case FINISHED:
+                this._players.forEach((player)=>{player.gameOver();});
+                break;
         }
    }
 
@@ -492,7 +498,7 @@ class RikkenTheGame extends PlayerGame{
         if(this._partnerSuite>=0){
             console.log("Selected partner suite: "+SUITE_NAMES[this._partnerSuite]+".");
             // here we can determine who will be the partner and register that!!!
-            let partnerPlayer=this.getPlayerWithCard(this._partnerRank,this._partnerSuite);
+            let partnerPlayer=this.getPlayerWithCard(this._partnerSuite,this._partnerRank);
             if(partnerPlayer){
                 partnerPlayer.partner=this._player;
                 console.log("Partner of "+this.getPlayerName(this._player)+": "+partnerPlayer.name+"'.");

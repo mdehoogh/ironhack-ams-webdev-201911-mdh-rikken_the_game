@@ -37,12 +37,7 @@ class Player extends CardHolder{
         console.log("Player '"+this.name+"' event listeners: "+this._eventListeners+".");
     }
 
-    constructor(name,playerEventListener){
-        super();
-        this.name=name;
-        if(playerEventListener&&!(playerEventListener instanceof PlayerEventListener))
-            throw new Error("Player event listener of wrong type.");
-        this._eventListeners=[];
+    _prepareForPlaying(){
         // default player remembering its choices
         this._bid=-1; // the last bid of this player
         this._trumpSuite=-1;
@@ -54,7 +49,16 @@ class Player extends CardHolder{
         this._partner=-1;
         this._tricksWon=[]; // the tricks won (in any game)
         this._numberOfTricksToWin=-1; // doesn't matter
-        this.addEventListener(playerEventListener);
+    }
+
+    constructor(name,playerEventListener){
+        super();
+        this.name=name;
+        if(playerEventListener&&!(playerEventListener instanceof PlayerEventListener))
+            throw new Error("Player event listener of wrong type.");
+        this._eventListeners=[];
+        if(playerEventListener)this.addEventListener(playerEventListener);
+        this._prepareForPlaying();
     }
 
     // getters exposing information to the made choice
@@ -159,8 +163,8 @@ class Player extends CardHolder{
     }
     _setPartnerSuite(partnerSuite){this.partnerSuiteChosen(this._partnerSuite=partnerSuite);}
     
-    // when a game is over, gameOver() should be called so a player can reset some stuff!!!
-    gameOver(){if(this._tricksWon.length>0)this._tricksWon=[];}
+    // when a game is over, gameOver() should be called so a player can reset some stuff!!! (see RikkenTheGame)
+    gameOver(){this._prepareForPlaying();}
 
     // can be asked to make a bid passing in the highest bid so far
     // NOTE this would be an 'abstract' method in classical OO
