@@ -108,7 +108,7 @@ class Trick extends CardHolder{
         // if the partner card is being asked for blind everyone has to play the partner card suite
         if(this._playSuite<0)this._playSuite=(this._askingForPartnerCard<0?this._partnerSuite:card.suite);
         // ASSERT this._playSuite now definitely non-negative, so
-        this._canAskForPartnerCardBlind=0; // TODO probably NOT needed as it will be set by OnlinePlayer every time!!
+        this._canAskForPartnerCard=0; // use the right property bro'
         // update winner
         if(numberOfCardsNow>0){
             if(compareCardsWithPlayAndTrumpSuite(card,this._cards[this._winnerCard],this._playSuite,this._trumpSuite)>0)
