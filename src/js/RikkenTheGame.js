@@ -42,16 +42,16 @@ class EmulatedPlayer extends Player{
 
 class Trick extends CardHolder{
 
+    // MDH@07DEC2019: game data moved over to PlayerGame instance (as passed to each player)
+    //                canAskForPartnerCard blind now determined by the game (engine) itself
+
     // by passing in the trump player (i.e. the person that can ask for the partner card)
-    constructor(firstPlayer,trumpSuite,partnerSuite,partnerRank,trumpPlayer){
+    constructor(firstPlayer,canAskForPartnerCard){ // replacing: trumpSuite,partnerSuite,partnerRank,trumpPlayer){
         super(); // using 4 fixed positions for the trick cards so we will know who played them!!!!
         this._firstPlayer=firstPlayer;
-        this._trumpSuite=trumpSuite;
-        this._partnerSuite=partnerSuite;
-        this._partnerRank=partnerRank;
-        this._trumpPlayer=trumpPlayer;
-        this._askingForPartnerCard=0;
-        this._playSuite=-1; // the suite of the trick (most of the time the first card)
+        this._canAskForPartnerCard=canAskForPartnerCard; // -1 blind, 0 not, 1 non-blind
+        this._askingForPartnerCard=0; // the 'flag' set by the trump player when asking for the partner card in a trick
+        this._playSuite=-1; // the suite of the trick (most of the time the suite of the first card)
         this._winnerCard=-1; // the card of the winner (note: NOT transformed to the actual player index yet)
         // let's keep track of the highest card
     }
@@ -60,12 +60,17 @@ class Trick extends CardHolder{
 
     // the winner exposed is the actual player who won
     get winner(){return(this._winnerCard<0?-1:(this._winnerCard+this._firstPlayer)%4);}
-    
+    /*
     get trumpPlayer(){return this._trumpPlayer;} // exposes the current trump player
     get partnerSuite(){return this._partnerSuite;}
     get partnerRank(){return this._partnerRank;}
-
-    set askingForPartnerCard(askingForPartnerCard){this._askingForThePartnerCard=askingForPartnerCard;}
+    */
+    // pass in -1 when asking the partner card blind, or +1 when asking for it (non-blind)
+    set askingForPartnerCard(askingForPartnerCard){
+        if(askingForPartnerCard!=0&&this.numberOfCards>0)
+            throw new Error("Opgeven de partner aas/heer (blind) te vragen niet meer toegestaan.");
+        this._askingForPartnerCard=askingForPartnerCard;
+    }
 
     _setWinnerCard(winnerCard){
         this._winnerCard=winnerCard;
@@ -99,7 +104,7 @@ class Trick extends CardHolder{
             throw new Error("Failed to add the card to the trick.");
         // ASSERT card added successfully
         if(this._askingForPartnerCard!=0&&this._trumpSuite<0)
-            throw new Error("BUG: Asking for the partner card blind, but playing a game without trump.");
+            throw new Error("BUG: Asking for the partner card, but playing a game without trump.");
         // if the partner card is being asked for blind everyone has to play the partner card suite
         if(this._playSuite<0)this._playSuite=(this._askingForPartnerCard<0?this._partnerSuite:card.suite);
         // ASSERT this._playSuite now definitely non-negative, so
@@ -121,11 +126,14 @@ class Trick extends CardHolder{
     // public getters
     get playSuite(){return this._playSuite;}
     get firstPlayer(){return this._firstPlayer;}
+
+    /*
     get trumpSuite(){return this._trumpSuite;}
-    ////////////get canAskForPartnerCardBlind(){return this._canAskForPartnerCardBlind;}
+    */
+    get canAskForPartnerCard(){return this._canAskForPartnerCard;}
 }
 
-class RikkenTheGame extends PlayerEventListener{
+class RikkenTheGame extends PlayerGame{
 
     static get MY_NAME(){
         return "Me";
@@ -202,7 +210,11 @@ class RikkenTheGame extends PlayerEventListener{
     
     get numberOfTricksPlayed(){return this._tricks.length;}
 
+    // PlayerGame implementation
     getTrumpSuite(){return this._trumpSuite;}
+    getPartnerSuite(){return this._partnerSuite;}
+    getPartnerRank(){return this._partnerRank;}
+    // end PlayerGame implementation
 
     getPlayerAtIndex(playerIndex){return(playerIndex>=0&&playerIndex<this.numberOfPlayers?this._players[playerIndex]:null);}
 
@@ -286,21 +298,25 @@ class RikkenTheGame extends PlayerEventListener{
         console.log("Possible bids equal to or higher than "+this._highestBid+": ",possibleBids);
         return possibleBids;
     }
+
+    // MDH@06DEC2019: the trump player is the player that can ask for the partner suite and rank
+    //                
+    _getTrumpPlayer(){
+        // only when playing a 'rik' game (with trump, played with a partner, but not troela, we have a trump player)
+        return(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER?this._highestBidPlayers[0]:-1);
+    }
     /**
-     * returns true when the player with the highest bid is playing with a partner
+     * returns 0 when the player cannot ask for the partner card anymore, 1 if he can ask for it non-blind, -1 when it has to be asked blind
      */
-    _canAskForPartnerCardBlind(){
-        // the player to play first (i.e. the current player) should be the highest bid player
-        if(this._partnerSuite>=0){ // there is a partner suite (i.e. the highest bid player is not playing alone)
-            if(this._player==this._highestBidPlayers[0]){ // the highest bid player is playing
-                if(this._partnerCardPlayedStatus==0){ // the partner card can be played and has not been played yet
-                    // oops, almost forgot: the player must not have any cards in the given suite anymore
-                    if(this._players[this._player].getSuites().indexOf(this.partnerSuite)<0)
-                        return true;
-                }
-            }
-        }
-        return false;
+    _canAskForPartnerCard(){
+        // theoretically the card can be played but it might be the card with which the partner card is asked!!
+        // is this a game where there's a partner card that hasn't been played yet
+        // alternatively put: should there be a partner and there isn't one yet?????
+        if(this._getTrumpPlayer()===this._player) // this is trump player is playing the first card
+            if(this._players[this._player].partner<0) // partner not known yet, therefore the partner card has not been played yet
+                // asking for the partner card is only possible when the player does not have the partner cards anymore
+                return(this._players[this._player].getNumberOfCardsWithSuite(this.getPartnerSuite)>0?1:-1);
+        return 0;
     }
     /**
      * returns a user friendly array of player bids objects
@@ -381,13 +397,6 @@ class RikkenTheGame extends PlayerEventListener{
         }
     }
 
-    // MDH@06DEC2019: the trump player is the player that can ask for the partner suite and rank
-    //                
-    _getTrumpPlayer(){
-        // only when playing a 'rik' game (with trump, played with a partner, but not troela, we have a trump player)
-        return(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER?this._highestBidPlayers[0]:-1);
-    }
-
     set state(newstate){
         let oldstate=this._state;
         this._state=newstate;
@@ -419,7 +428,7 @@ class RikkenTheGame extends PlayerEventListener{
                     // if there's a partner suite (and rank) we have to check whether or not it was played or not
                     this._partnerCardPlayedStatus=(this._partnerSuite>=0?0:-1); // keep track of whether the partner card was played
                     console.log("Let the games begin!");
-                    this._trick=new Trick(this._player,this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
+                    this._trick=new Trick(this._player,this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
                     this._players[this._player].playACard(this._trick);
                 }
                 break;
@@ -708,7 +717,7 @@ class RikkenTheGame extends PlayerEventListener{
                 return;
             }
             // initialize a new trick with the first player to play
-            this._trick=new Trick(this._player,this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
+            this._trick=new Trick(this._player,this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
         }else // not yet, more cards to play in this trick
             this._player=(this._player+1)%4;
         // and ask the new current player to play a card

@@ -110,7 +110,16 @@ function showName(element,name,ispartner){
  */
 function showTrick(trick,playerIndex){
     console.log("Showing trick ",trick);
-    // TODO do we need the play suite for anything??????
+    // if this is the trump player that is can ask for the partner card (either non-blind or blind) flag the checkbox
+    if(trick.canAskForPartnerCard!=0){
+        document.getElementById('ask-partner-card-checkbox').checked=true;
+        document.getElementById('partner-suite').innerHTML=DUTCH_SUITE_NAMES[currentPlayer._game.getPartnerSuite()];
+        document.getElementById('partner-rank').innerHTML=DUTCH_RANK_NAMES[currentPlayer._game.getPartnerRank()];
+        document.getElementById('ask-partner-card-blind').innerHTML=(trick.canAskForPartnerCard<0?"blind ":"");
+        document.getElementById("ask-partner-card").style.display="block";
+    }else
+        document.getElementById("ask-partner-card").style.display="none";
+
     //let tablebody=document.getElementById("trick-cards-table").requestSelector("tbody");
     // show the player names
     let partnerIndex=rikkenTheGame.getPartner(playerIndex);
@@ -410,9 +419,11 @@ class OnlinePlayer extends Player{
         currentPlayer=this;
         // if this is a new trick update the tricks played table with the previous trick
         if(trick.numberOfCards==0)updateTricksPlayedTable();
+        /* see showTrick()
         document.getElementById("can-ask-for-partner-card-blind").style.display=(trick.canAskForPartnerCardBlind?"block":"none");
         // always start unchecked...
         document.getElementById("ask-for-partner-card-blind").checked=false; // when clicked should generate 
+        */
         if(rikkenTheGame.numberOfTricksPlayed==0)document.getElementById("game-info").innerHTML=getGameInfo();
         document.getElementById("card-player").innerHTML=this.name;
         document.getElementById("trick-playsuite").innerHTML=(trick.playSuite>=0?DUTCH_SUITE_NAMES[trick.playSuite].toLowerCase():"kaart");
@@ -471,8 +482,22 @@ class OnlinePlayer extends Player{
                 // theoretically the card can be played but it might be the card with which the partner card is asked!!
                 // is this a game where there's a partner card that hasn't been played yet
                 // alternatively put: should there be a partner and there isn't one yet?????
-                if(this._trick.trumpPlayer==this._index){ // this is trump player is playing the first card
-                    if(this._partner<0){ // partner not known yet, therefore the partner card has not been played yet
+                if(this._game.getTrumpPlayer()==this._index){ // this is trump player playing the first card
+                    // can the trump player ask for the partner card blind
+                    // which means that the trump player does not have 
+                    if(this._trick.canAskForPartnerCard>0){ // non-blind
+                        // TODO should be detected by the game preferably
+                        if(suite==this._game.getPartnerSuite())
+                            this._trick.askingForPartnerCard=1;
+                    }else
+                    if(this._trick.canAskForPartnerCard<0){ // could be blind
+                        // if the checkbox is still set i.e. the user didn't uncheck it
+                        // he will be asking for the 
+                        if(document.getElementById("ask-partner-card-blind").checked&&
+                            (suite!=this._game.getTrumpSuite()||confirm("Wilt U de "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game.getPartnerRank()]+" (blind) vragen met een troef?")))
+                            this._trick.askingForPartnerCard=-1; // yes, asking blind!!
+                    }
+                    /* replacing:
                         // so, could be asking
                         // not asking when playing trump!!
                         if(suite!=this._trick.trumpSuite){
@@ -484,15 +509,23 @@ class OnlinePlayer extends Player{
                             }else // definitely asking
                                 this._trick.askingForPartnerCard=1;
                         }
-                    }
-                // if playing the partner suite
-                    // if trump is being played definitely not prompting for the partner card
-                }    
+                        */
+                }
             }else{ // not the first card in the trick played
                 // the card needs to be the same suite as the play suite (if the player has any)
                 if(suite!==this._trick.playSuite&&this.getNumberOfCardsWithSuite(this._trick.playSuite)>0){
                     alert("Je kunt "+card.getTextRepresentation()+" niet spelen, want "+DUTCH_SUITE_NAMES[this._trick.playSuite]+" is gevraagd.");
                     return;
+                }
+                // when being asked for the partner card that would be the card to play!
+                if(this._trick.askingForPartnerCard!=0){
+                    let partnerSuite=this._game.getPartnerSuite(),partnerRank=this._game.getPartnerRank();
+                    if(this.containsCard(partnerSuite,partnerRank)){
+                        if(card.suite!=partnerSuite||card.rank!=partnerRank){
+                            alert("Je kunt "+card.getTextRepresentation()+" niet spelen, want de "+DUTCH_SUITE_NAMES[partnerSuite]+" "+DUTCH_RANK_NAMES[partnerRank]+" is gevraagd.");
+                            return;
+                        }
+                    }
                 }
             }
             this._setCard(card);
@@ -712,8 +745,8 @@ window.onload=function(){
     for(let suite=0;suite<4;suite++)
         for(let suiteButton of document.querySelectorAll(".suite."+SUITE_NAMES[suite]))
             suiteButton.value=SUITE_CHARACTERS[suite];
-
-    document.getElementById("ask-for-partner-card-blind").onclick=askingForPartnerCardBlind;
-
+    /* user can uncheck the check box and no need to respond to that immediately
+    document.getElementById("ask-partner-card-checkbox").onclick=askingPartnerCard;
+    */
     this.setPage(PAGES[0]);
 };

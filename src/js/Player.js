@@ -12,6 +12,15 @@ class PlayerEventListener{
     partnerSuiteChosen(){}
 }
 
+// MDH@07DEC2019: PlayerGame extends PlayerEventListener with game data exposed to player
+//                which was earlier stored in each trick
+class PlayerGame extends PlayerEventListener{
+    getTrumpSuite(){}
+    getPartnerSuite(){}
+    getPartnerRank(){}
+    getTrumpPlayer(){}
+}
+
 const CHOICE_IDS=["a","b","c","d","e","f","g","h","i","j","k","l","m"];
 
 // the base class of all Player instances
@@ -67,7 +76,11 @@ class Player extends CardHolder{
 
     get game(){return this._game;}
     set game(game){
-        this._game=(this._index>=0&&game&&game instanceof PlayerEventListener?game:null);
+        if(game&&!(game instanceof PlayerGame))
+            throw new Error("Game instance supplied to player "+this.name+" not of type PlayerGame.");
+        if(this._index<0)
+            throw new Error("Position index of player "+this.name+" unknown!");
+        this._game=game;
         // sync _index
         if(this._game){
             // prepare for playing the game
@@ -78,8 +91,7 @@ class Player extends CardHolder{
             this.partner=-1; // my partner (once I now who it is)
             this.tricksWon=[]; // storing the tricks won
             this._card=null; // no card played yet
-        }else
-            this._index=-1;
+        }
     }
 
     playsTheGameAtIndex(game,index){
