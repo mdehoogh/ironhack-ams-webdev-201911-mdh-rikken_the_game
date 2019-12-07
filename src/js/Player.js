@@ -3,13 +3,13 @@
  */
 
 /**
- * a Player can make a bid, or play a card
+ * a Player can make a bid, or play a card, choose a trump and partner suite
  */
 class PlayerEventListener{
-    bidMade(){}
-    cardPlayed(){}
-    trumpSuiteChosen(){}
-    partnerSuiteChosen(){}
+    bidMade(bid){}
+    cardPlayed(card){}
+    trumpSuiteChosen(trumpSuite){}
+    partnerSuiteChosen(partnerSuite){}
 }
 
 // MDH@07DEC2019: PlayerGame extends PlayerEventListener with game data exposed to player
@@ -19,6 +19,10 @@ class PlayerGame extends PlayerEventListener{
     getPartnerSuite(){}
     getPartnerRank(){}
     getTrumpPlayer(){}
+    getNumberOfTricksWonByPlayer(player){}
+    getPartnerName(player){}
+    getHighestBidders(){}
+    getHighestBid(){}
 }
 
 const CHOICE_IDS=["a","b","c","d","e","f","g","h","i","j","k","l","m"];
@@ -39,7 +43,11 @@ class Player extends CardHolder{
         if(playerEventListener&&!(playerEventListener instanceof PlayerEventListener))
             throw new Error("Player event listener of wrong type.");
         this._eventListeners=[];
+        // default player remembering its choices
         this._bid=-1; // the last bid of this player
+        this._trumpSuite=-1;
+        this._partnerSuite=-1;
+        this._card=null;
         // the game being played, and the index within that game
         this._playerIndex=-1;
         this._game=null;
@@ -54,13 +62,19 @@ class Player extends CardHolder{
         this._askingForPartnerCardBlind=askingForPartnerCardBlind;
     }
 
-    // getters exposing information to the game (after making a bid, playing a card or choosing trump or partner)
+    // getters exposing information to the made choice
+    // NOTE no longer called by the game because the choice is passed as an argument now
+    //      this way subclasses are not obligated to remember the choices they make
     get bid(){return this._bid;}
+    get partnerSuite(){return this._partnerSuite;}
+    get trumpSuite(){return this._trumpSuite;}
+    get card(){return this.card();}
 
     get partner(){return this._partner;}
 
     //////////////get card(){return this._cards[this._cardPlayIndex];}
 
+    /* can be passed directly to the game
     // can be set directly when a better 'rik' variation bid was done!!!!
     get trumpSuite(){return this._trumpSuite;}
     
@@ -71,6 +85,7 @@ class Player extends CardHolder{
     // called from the UI to set the trump suite!!!!
     set trumpSuite(trumpSuite){this._trumpSuite=trumpSuite;this.trumpSuiteChosen();}
     set partnerSuite(partnerSuite){this._partnerSuite=partnerSuite;this.partnerSuiteChosen();}
+    */
 
     // end of getters/setters used by the game
 
@@ -84,13 +99,8 @@ class Player extends CardHolder{
         // sync _index
         if(this._game){
             // prepare for playing the game
-            this._bid=-1; // last bid (so far)
-            this._trumpSuite=-1; // choosen trump suite
-            this._partnerSuite=-1; // choose partner suite
-            this._partnerRank=-1; // associated rank (either RANK_ACE or RANK_KING)
             this.partner=-1; // my partner (once I now who it is)
             this.tricksWon=[]; // storing the tricks won
-            this._card=null; // no card played yet
         }
     }
 
@@ -98,12 +108,12 @@ class Player extends CardHolder{
         this._index=index;
         this.game=game;
     }
-
+    /*
     addCard(card){
         super.addCard(card);
         console.log("Player '"+this+"' received card '"+card+"'.");
     }
-
+    */
     _getCardsOfSuite(cardSuite,whenNotFoundCard){
         return this.cards.filter((card)=>{return(card.suite==cardSuite);});
     }
@@ -123,43 +133,37 @@ class Player extends CardHolder{
     }
 
     // to signal having made a bid
-    bidMade(){
+    _bidMade(bid){
         if(this._eventListeners) // catch any error thrown by event listeners
-            this._eventListeners.forEach((eventListener)=>{try{eventListener.bidMade();}catch(error){}});
-        if(this._game)this._game.bidMade();
-    }    
-    // TODO a bid setter will allow subclasses to pass a bid by setting the property
-    setBid(bid){
-        this._bid=bid;
-        this.bidMade();
+            this._eventListeners.forEach((eventListener)=>{try{eventListener.bidMade(this._bid);}catch(error){}});
+        if(this._game)this._game.bidMade(this._bid);
     }
+    _setBid(bid){this._bidMade(this._bid=bid);}
 
-    // to signal having played a card
-    get card(){return this._card;}
-
-    _cardPlayed(){
-        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed();});
-        if(this._game)this._game.cardPlayed();
+    _cardPlayed(card){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{eventListener.cardPlayed(card);});
+        if(this._game)this._game.cardPlayed(card);
     }
-
     // TODO a bid setter will allow subclasses to pass a bid by setting the property
     _setCard(card){
         // technically checking whether the played card is valid should be done here, or BEFORE calling setCard
-        this._card=card;
-        this._cardPlayed();
+        this._cardPlayed(this._card=card);
     }
 
     // to signal having choosen a trump suite
-    trumpSuiteChosen(){
-        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.trumpSuiteChosen();}catch(error){};});
-        if(this._game)this._game.trumpSuiteChosen();
+    trumpSuiteChosen(trumpSuite){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.trumpSuiteChosen(trumpSuite);}catch(error){};});
+        if(this._game)this._game.trumpSuiteChosen(trumpSuite);
     }
-    // to signal having chosen a partner
-    partnerSuiteChosen(){
-        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.partnerSuiteChosen();}catch(error){};});
-        if(this._game)this._game.partnerSuiteChosen();
-    }
+    _setTrumpSuite(trumpSuite){this.trumpSuiteChosen(this._trumpSuite=trumpSuite);}
 
+    // to signal having chosen a partner
+    partnerSuiteChosen(partnerSuite){
+        if(this._eventListeners)this._eventListeners.forEach((eventListener)=>{try{eventListener.partnerSuiteChosen(partnerSuite);}catch(error){};});
+        if(this._game)this._game.partnerSuiteChosen(partnerSuite);
+    }
+    _setPartnerSuite(partnerSuite){this.partnerSuiteChosen(this._partnerSuite=partnerSuite);}
+    
     // when a game is over, gameOver() should be called so a player can reset some stuff!!!
     gameOver(){
         if(this._tricksWon.length>0)this._tricksWon=[];
@@ -184,30 +188,39 @@ class Player extends CardHolder{
         let possibleBidNames=BID_NAMES.slice(highestBidSoFar);
         possibleBidNames.unshift(BID_NAMES[BID_PAS]); // user can always 'pas'
         console.log("Possible bids: ",possibleBidNames);
-        this._bid=-1;
-        while(this._bid<0){
+        let bid=-1;
+        while(bid<0){
             let bidname=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat is your bid (options: '"+possibleBidNames.join("', '")+"')?",possibleBidNames[0]);
-            this._bid=BID_NAMES.indexOf(bidname);
-            if(this._bid<0)continue;
+            bid=BID_NAMES.indexOf(bidname);
+            if(bid<0)continue;
             try{
-                this.bidMade();
+                this._setBid(bid);
             }catch(error){
                 console.error(error);
-                this._bid=-1;
+                bid=-1;
             }
         }
     }
+
     chooseTrumpSuite(suites){
         // if this player has all aces it's gonna be the suite of a king the person hasn't
         // also it needs to be an ace of a suite the user has itself (unless you have all other aces)
         this._trumpSuite=-1;
         // any of the suites in the cards can be the trump suite!
         let possibleTrumpSuiteNames=this.getSuites().map((suite)=>{return CARD_SUITES[suite];});
-        while(this._trumpSuite<0){
+        let trumpSuite=-1;
+        while(trumpSuite<0){
             let trumpName=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat suite will be trump (options: '"+possibleTrumpSuiteNames.join("', '")+"')?",possibleTrumpSuiteNames[0]);
-            this._trumpSuite=possibleTrumpSuiteNames.indexOf(trumpName);
+            trumpSuite=possibleTrumpSuiteNames.indexOf(trumpName);
+            if(trumpSuite>=0){
+                try{
+                    this._setTrumpSuite(trumpSuite);
+                }catch(error){
+                    console.error(error);
+                    trumpSuite=-1;
+                }
+            }
         }
-        this.trumpSuiteChosen();
     }
     /**
      * asks for the suite of the partner card of the given rank
@@ -236,12 +249,19 @@ class Player extends CardHolder{
             }
         }
         let possiblePartnerSuiteNames=possiblePartnerSuites.map((suite)=>{return CARD_SUITES[suite];});
-
-        while(this._partnerSuite<0){
+        let partnerSuite=-1;
+        while(partnerSuite<0){
             let partnerSuiteName=prompt("@"+this.name+" (holding "+this.getTextRepresentation(true)+")\nWhat "+CARD_NAMES[this._partnerRank]+" should your partner have (options: '"+possiblePartnerSuiteNames.join("', '")+"')?",possiblePartnerSuiteNames[0]);
-            this._partnerSuite=possiblePartnerSuiteNames.indexOf(partnerSuiteName);
+            partnerSuite=possiblePartnerSuiteNames.indexOf(partnerSuiteName);
+            if(partnerSuite>=0){
+                try{
+                    this._setPartnerSuite(partnerSuite);
+                }catch(error){
+                    console.error(error);
+                    partnerSuite=-1;
+                }
+            }
         }
-        this.partnerSuiteChosen();
     }
 
     set partner(partner){this._partner=partner;} // to set the partner once the partner suite/rank card is in the trick!!!!
@@ -269,7 +289,11 @@ class Player extends CardHolder{
         console.log("Trick #"+trickIndex+" won by '"+this.name+"': "+this._tricksWon+".");
     }
 
-    getNumberOfTricksWon(){return this._tricksWon.length;}
+    get numberOfTricksWon(){return this._tricksWon.length;}
+    getNumberOfTricksWon(){
+        // return the total number of tricks won (including those by the partner (if any))
+        return(this.numberOfTricksWon+this._game.getNumberOfTricksWonByPlayer(this.partner));
+    }
 
     setNumberOfTricksToWin(numberOfTricksToWin){this._numberOfTricksToWin=numberOfTricksToWin;}
 
