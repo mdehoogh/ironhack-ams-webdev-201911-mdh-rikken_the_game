@@ -54,12 +54,7 @@ class Player extends CardHolder{
         this._partner=-1;
         this._tricksWon=[]; // the tricks won (in any game)
         this._numberOfTricksToWin=-1; // doesn't matter
-        this._askingForPartnerCardBlind=false;
         this.addEventListener(playerEventListener);
-    }
-
-    set askingForPartnerCardBlind(askingForPartnerCardBlind){
-        this._askingForPartnerCardBlind=askingForPartnerCardBlind;
     }
 
     // getters exposing information to the made choice
@@ -165,9 +160,7 @@ class Player extends CardHolder{
     _setPartnerSuite(partnerSuite){this.partnerSuiteChosen(this._partnerSuite=partnerSuite);}
     
     // when a game is over, gameOver() should be called so a player can reset some stuff!!!
-    gameOver(){
-        if(this._tricksWon.length>0)this._tricksWon=[];
-    }
+    gameOver(){if(this._tricksWon.length>0)this._tricksWon=[];}
 
     // can be asked to make a bid passing in the highest bid so far
     // NOTE this would be an 'abstract' method in classical OO

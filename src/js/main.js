@@ -110,16 +110,21 @@ function showName(element,name,ispartner){
  */
 function showTrick(trick,playerIndex){
     console.log("Showing trick ",trick);
+    if(trick.numberOfCards==0&&currentPlayer._game.getPartnerRank()>=0){ // once suffices
+        for(let partnerSuiteElement of document.getElementsByClassName('partner-suite'))partnerSuiteElement.innerHTML=DUTCH_SUITE_NAMES[currentPlayer._game.getPartnerSuite()];
+        for(let partnerRankElement of document.getElementsByClassName('partner-suite'))partnerRankElement.innerHTML=DUTCH_RANK_NAMES[currentPlayer._game.getPartnerRank()];
+    }
     // if this is the trump player that is can ask for the partner card (either non-blind or blind) flag the checkbox
     if(trick.canAskForPartnerCard!=0){
         document.getElementById('ask-partner-card-checkbox').checked=true;
-        document.getElementById('partner-suite').innerHTML=DUTCH_SUITE_NAMES[currentPlayer._game.getPartnerSuite()];
-        document.getElementById('partner-rank').innerHTML=DUTCH_RANK_NAMES[currentPlayer._game.getPartnerRank()];
         document.getElementById('ask-partner-card-blind').innerHTML=(trick.canAskForPartnerCard<0?"blind ":"");
         document.getElementById("ask-partner-card").style.display="block";
     }else
         document.getElementById("ask-partner-card").style.display="none";
-
+    if(trick.askingForPartnerCard!=0){
+        document.getElementById("asking-for-partner-card-info").style.display="block";
+    }else
+        document.getElementById("asking-for-partner-card-info").style.display="none";
     //let tablebody=document.getElementById("trick-cards-table").requestSelector("tbody");
     // show the player names
     let partnerIndex=rikkenTheGame.getPartner(playerIndex);
@@ -495,19 +500,25 @@ class OnlinePlayer extends Player{
                 // is this a game where there's a partner card that hasn't been played yet
                 // alternatively put: should there be a partner and there isn't one yet?????
                 if(this._game.getTrumpPlayer()==this._index){ // this is trump player playing the first card
+                    console.log("******************************************************");
+                    console.log(">>>> CHECKING WHETHER ASKING FOR THE PARTNER CARD <<<<");
                     // can the trump player ask for the partner card blind
                     // which means that the trump player does not have 
                     if(this._trick.canAskForPartnerCard>0){ // non-blind
                         // TODO should be detected by the game preferably
-                        if(suite==this._game.getPartnerSuite())
+                        if(suite==this._game.getPartnerSuite()){
                             this._trick.askingForPartnerCard=1;
+                            console.log("\tNON_BLIND");
+                        }
                     }else
                     if(this._trick.canAskForPartnerCard<0){ // could be blind
                         // if the checkbox is still set i.e. the user didn't uncheck it
                         // he will be asking for the 
                         if(document.getElementById("ask-partner-card-blind").checked&&
-                            (suite!=this._game.getTrumpSuite()||confirm("Wilt U de "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game.getPartnerRank()]+" (blind) vragen met een troef?")))
+                            (suite!=this._game.getTrumpSuite()||confirm("Wilt U de "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game.getPartnerRank()]+" (blind) vragen met een troef?"))){
                             this._trick.askingForPartnerCard=-1; // yes, asking blind!!
+                            console.log("\tBLIND!");
+                        }
                     }
                     /* replacing:
                         // so, could be asking

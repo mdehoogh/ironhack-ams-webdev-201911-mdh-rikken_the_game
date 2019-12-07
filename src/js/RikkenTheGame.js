@@ -46,9 +46,10 @@ class Trick extends CardHolder{
     //                canAskForPartnerCard blind now determined by the game (engine) itself
 
     // by passing in the trump player (i.e. the person that can ask for the partner card)
-    constructor(firstPlayer,canAskForPartnerCard){ // replacing: trumpSuite,partnerSuite,partnerRank,trumpPlayer){
+    constructor(firstPlayer,trumpSuite,canAskForPartnerCard){ // replacing: trumpSuite,partnerSuite,partnerRank,trumpPlayer){
         super(); // using 4 fixed positions for the trick cards so we will know who played them!!!!
         this._firstPlayer=firstPlayer;
+        this._trumpSuite=trumpSuite; // for internal use to be able to determine the winner of a trick
         this._canAskForPartnerCard=canAskForPartnerCard; // -1 blind, 0 not, 1 non-blind
         this._askingForPartnerCard=0; // the 'flag' set by the trump player when asking for the partner card in a trick
         this._playSuite=-1; // the suite of the trick (most of the time the suite of the first card)
@@ -224,6 +225,11 @@ class RikkenTheGame extends PlayerGame{
         let partner=(player>=0&&player<this.numberOfPlayers?this._players[player].partner:-1);
         return(partner>=0&&partner<this.numberOfPlayers?this._players[partner].name:null);
     }
+    // MDH@06DEC2019: the trump player is the player that can ask for the partner suite and rank              
+    getTrumpPlayer(){
+        // only when playing a 'rik' game (with trump, played with a partner, but not troela, we have a trump player)
+        return(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER?this._highestBidPlayers[0]:-1);
+    }
     // end PlayerGame implementation
 
     getPlayerAtIndex(playerIndex){return(playerIndex>=0&&playerIndex<this.numberOfPlayers?this._players[playerIndex]:null);}
@@ -309,12 +315,6 @@ class RikkenTheGame extends PlayerGame{
         return possibleBids;
     }
 
-    // MDH@06DEC2019: the trump player is the player that can ask for the partner suite and rank
-    //                
-    _getTrumpPlayer(){
-        // only when playing a 'rik' game (with trump, played with a partner, but not troela, we have a trump player)
-        return(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER?this._highestBidPlayers[0]:-1);
-    }
     /**
      * returns 0 when the player cannot ask for the partner card anymore, 1 if he can ask for it non-blind, -1 when it has to be asked blind
      */
@@ -438,7 +438,7 @@ class RikkenTheGame extends PlayerGame{
                     // if there's a partner suite (and rank) we have to check whether or not it was played or not
                     ////////this._partnerCardPlayedStatus=(this._partnerSuite>=0?0:-1); // keep track of whether the partner card was played
                     console.log("Let the games begin!");
-                    this._trick=new Trick(this._player,this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
+                    this._trick=new Trick(this._player,this.getTrumpSuite(),this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
                     this._players[this._player].playACard(this._trick);
                 }
                 break;
@@ -478,6 +478,7 @@ class RikkenTheGame extends PlayerGame{
         // I guess we can pass along the rank, which means we can choose the rank ourselves
         if(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER){ // yes, a regular 'rik'
             this._partnerRank=this._getPartnerRank();
+            console.log(">>> Partner card rank: "+RANK_NAMES[this._partnerRank]+".");
             this._players[this._player].choosePartnerSuite(DUTCH_RANK_NAMES[this._partnerRank]); // passing along the rank of the card the user can choose
         }else // a solitary play, so we can start playing immediately
             this._startPlaying((this.dealer+1)%this.numberOfPlayers);
@@ -724,7 +725,7 @@ class RikkenTheGame extends PlayerGame{
                 return;
             }
             // initialize a new trick with the first player to play
-            this._trick=new Trick(this._player,this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
+            this._trick=new Trick(this._player,this.getTrumpSuite(),this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
         }else // not yet, more cards to play in this trick
             this._player=(this._player+1)%4;
         // and ask the new current player to play a card
