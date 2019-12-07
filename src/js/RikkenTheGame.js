@@ -322,7 +322,7 @@ class RikkenTheGame extends PlayerGame{
         // theoretically the card can be played but it might be the card with which the partner card is asked!!
         // is this a game where there's a partner card that hasn't been played yet
         // alternatively put: should there be a partner and there isn't one yet?????
-        if(this._getTrumpPlayer()===this._player) // this is trump player is playing the first card
+        if(this.getTrumpPlayer()===this._player) // this is trump player is playing the first card
             if(this._players[this._player].partner<0) // partner not known yet, therefore the partner card has not been played yet
                 // asking for the partner card is only possible when the player does not have the partner cards anymore
                 return(this._players[this._player].getNumberOfCardsWithSuite(this.getPartnerSuite)>0?1:-1);
