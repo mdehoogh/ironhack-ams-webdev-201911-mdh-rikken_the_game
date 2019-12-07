@@ -81,7 +81,13 @@ I suspect that, apart from the various ways the UI could be improved upon (a UI/
 Marc P. de Hoogh
 Web game as developed in Week 3 of the Ironhack Web Development Bootcamp Amsterdam, November 2019
 
-
+To do list
+----------
+December 8, 2019
+----------------
+- moving data stored with the trick to the game (as known to the players)
+- the flag that will make a player determine whether he can ask for the partner card blind is now (again)
+  present in the trick; that way it is not up to the player to determine whether that's the case or not
 
 
 
