@@ -102,7 +102,12 @@ function showCard(element,card,trumpSuite,winnerSign){
 
 function showPlayerName(element,name,playerType){
     element.innerHTML=(name?name:"?");
-    element.style.color=(playerType<0?"red":(playerType>0?"green":"black"));
+    switch(playerType){
+        case -1:element.style.color="red";break;
+        case 0:element.style.color="orange";break;
+        case 1:element.style.color="green";break;
+        default:element.style.color="black";break;
+    }
 }
 /**
  * shows the given trick
@@ -131,10 +136,10 @@ function showTrick(trick,playerIndex){
     let partnerIndex=rikkenTheGame.getPartner(playerIndex);
     console.log(">>> Partner of "+rikkenTheGame.getPlayerName(playerIndex)+": "+rikkenTheGame.getPlayerName(partnerIndex)+".");
     */
-    showPlayerName(document.getElementById("player-name"),rikkenTheGame.getPlayerName(playerIndex),0);
-    showPlayerName(document.getElementById("player-left-name"),rikkenTheGame.getPlayerName((playerIndex+1)%4),currentPlayer.isFriendly((playerIndex+1)%4)?1:-1);
-    showPlayerName(document.getElementById("player-opposite-name"),rikkenTheGame.getPlayerName((playerIndex+2)%4),currentPlayer.isFriendly((playerIndex+2)%4)?1:-1);
-    showPlayerName(document.getElementById("player-right-name"),rikkenTheGame.getPlayerName((playerIndex+3)%4),currentPlayer.isFriendly((playerIndex+3)%4)?1:-1);
+    showPlayerName(document.getElementById("player-name"),rikkenTheGame.getPlayerName(playerIndex),-2);
+    showPlayerName(document.getElementById("player-left-name"),rikkenTheGame.getPlayerName((playerIndex+1)%4),currentPlayer.isFriendly((playerIndex+1)%4));
+    showPlayerName(document.getElementById("player-opposite-name"),rikkenTheGame.getPlayerName((playerIndex+2)%4),currentPlayer.isFriendly((playerIndex+2)%4));
+    showPlayerName(document.getElementById("player-right-name"),rikkenTheGame.getPlayerName((playerIndex+3)%4),currentPlayer.isFriendly((playerIndex+3)%4));
     // show the trick cards played by the left, opposite and right player
     // NOTE the first card could be the blind card asking for the partner card in which case we should not show it!!
     //      but only the color of the partner suite

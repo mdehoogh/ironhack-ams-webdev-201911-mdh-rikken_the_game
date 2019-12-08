@@ -296,22 +296,23 @@ class Player extends CardHolder{
 
     setNumberOfTricksToWin(numberOfTricksToWin){this._numberOfTricksToWin=numberOfTricksToWin;}
 
-    // every player can be checked whether friend or foo
+    // every player can be checked whether friend (1) or foo (-1) or unknown (0)
     isFriendly(player){
-        if(player===this._index)return true;
+        if(player===this._index)return 1; // I'm friendly to me
         let bid=this._game.getHighestBid();
-        if(bid!=BID_TROELA&&bid!=BID_RIK&&bid!=BID_RIK_BETER)return false;
+        if(bid!=BID_TROELA&&bid!=BID_RIK&&bid!=BID_RIK_BETER)return -1; // in a solitary game nobody is friendly
         // ASSERT not a solitary game so player could be the partner in crime
         // if partner is known (i.e. the partner card is no longer in the game)
-        if(this._partner>=0)return(this._partner===player); 
+        if(this._partner>=0)return(player===this._partner?1:-1); 
         // ASSERT partner unknown (i.e. partner card still in the game)
-        // if I'm the trump player, assume ALL unfriendly
-        if(this._index===this._game.getTrumpPlayer())return false;
-        // if I have the partner card (still in the game!!!!) only the trump player is friendly
-        if(this.containsCard(this._game.getPartnerSuite(),this._game.getPartnerRank()))
-            return(player===this._game.getTrumpPlayer());
-        // ASSERT neither the trump player nor the partner card player, so every one's a foo
-        return false; // not a friend until proven otherwise
+        let trumpPlayer=this._game.getTrumpPlayer();
+        // if I'm the trump player, assume ALL unfriendly BUT no I don't know who my partner is all could be
+        if(this._index===trumpPlayer)return 0; // unknown
+        if(this.containsCard(this._game.getPartnerSuite(),this._game.getPartnerRank())) // I have the partner card
+            return(player==trumpPlayer?1:-1); // the trump player is friendly, the others are unfriendly
+        // ASSERT I'm not the trump player, and I'm not with the trump player as well
+        // the trump player is foo, the rest I don't know yet
+        return(player===trumpPlayer?-1:0);
     }
 
     toString(){return this.name;}

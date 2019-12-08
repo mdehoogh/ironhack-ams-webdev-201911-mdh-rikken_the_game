@@ -699,7 +699,6 @@ class RikkenTheGame extends PlayerGame{
                     if(!partnerCardPresentInTrick)
                         throw new Error("The partner card was asked for, but was not present in the trick though.");
                 if(partnerCardPresentInTrick){
-                    debugger
                     // if the partners are now known yet (in a regular rik situation then)
                     if(!this._arePartnersKnown)this._tellPlayersWhoTheirPartnerIs();
                 }
