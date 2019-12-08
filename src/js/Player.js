@@ -27,6 +27,8 @@ class PlayerGame extends PlayerEventListener{
 
 const CHOICE_IDS=["a","b","c","d","e","f","g","h","i","j","k","l","m"];
 
+const PLAYERTYPE_FOO=0,PLAYERTYPE_UNKNOWN=1,PLAYERTYPE_FRIEND=2;
+
 // the base class of all Player instances
 // would be defined abstract in classical OO
 class Player extends CardHolder{
@@ -293,6 +295,24 @@ class Player extends CardHolder{
     }
 
     setNumberOfTricksToWin(numberOfTricksToWin){this._numberOfTricksToWin=numberOfTricksToWin;}
+
+    // every player can be checked whether friend or foo
+    isFriendly(player){
+        if(player===this._index)return true;
+        let bid=this._game.getHighestBid();
+        if(bid!=BID_TROELA&&bid!=BID_RIK&&bid!=BID_RIK_BETER)return false;
+        // ASSERT not a solitary game so player could be the partner in crime
+        // if partner is known (i.e. the partner card is no longer in the game)
+        if(this._partner>=0)return(this._partner===player); 
+        // ASSERT partner unknown (i.e. partner card still in the game)
+        // if I'm the trump player, assume ALL unfriendly
+        if(this._index===this._game.getTrumpPlayer())return false;
+        // if I have the partner card (still in the game!!!!) only the trump player is friendly
+        if(this.containsCard(this._game.getPartnerSuite(),this._game.getPartnerRank()))
+            return(player===this._game.getTrumpPlayer());
+        // ASSERT neither the trump player nor the partner card player, so every one's a foo
+        return false; // not a friend until proven otherwise
+    }
 
     toString(){return this.name;}
 

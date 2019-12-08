@@ -100,9 +100,9 @@ function showCard(element,card,trumpSuite,winnerSign){
         element.innerHTML="";
 }
 
-function showName(element,name,ispartner){
+function showPlayerName(element,name,playerType){
     element.innerHTML=(name?name:"?");
-    element.style.color=(ispartner?"green":"black");
+    element.style.color=(playerType<0?"red":(playerType>0?"green":"black"));
 }
 /**
  * shows the given trick
@@ -127,12 +127,14 @@ function showTrick(trick,playerIndex){
         document.getElementById("asking-for-partner-card-info").style.display="none";
     //let tablebody=document.getElementById("trick-cards-table").requestSelector("tbody");
     // show the player names
+    /* shouldn't address rikkenTheGame here (should ask the current player!!!)
     let partnerIndex=rikkenTheGame.getPartner(playerIndex);
     console.log(">>> Partner of "+rikkenTheGame.getPlayerName(playerIndex)+": "+rikkenTheGame.getPlayerName(partnerIndex)+".");
-    showName(document.getElementById("player-name"),rikkenTheGame.getPlayerName(playerIndex),false);
-    showName(document.getElementById("player-left-name"),rikkenTheGame.getPlayerName((playerIndex+1)%4),(playerIndex+1)%4===partnerIndex);
-    showName(document.getElementById("player-opposite-name"),rikkenTheGame.getPlayerName((playerIndex+2)%4),(playerIndex+2)%4===partnerIndex);
-    showName(document.getElementById("player-right-name"),rikkenTheGame.getPlayerName((playerIndex+3)%4),(playerIndex+3)%4===partnerIndex);
+    */
+    showPlayerName(document.getElementById("player-name"),rikkenTheGame.getPlayerName(playerIndex),0);
+    showPlayerName(document.getElementById("player-left-name"),rikkenTheGame.getPlayerName((playerIndex+1)%4),currentPlayer.isFriendly((playerIndex+1)%4)?1:-1);
+    showPlayerName(document.getElementById("player-opposite-name"),rikkenTheGame.getPlayerName((playerIndex+2)%4),currentPlayer.isFriendly((playerIndex+2)%4)?1:-1);
+    showPlayerName(document.getElementById("player-right-name"),rikkenTheGame.getPlayerName((playerIndex+3)%4),currentPlayer.isFriendly((playerIndex+3)%4)?1:-1);
     // show the trick cards played by the left, opposite and right player
     // NOTE the first card could be the blind card asking for the partner card in which case we should not show it!!
     //      but only the color of the partner suite
@@ -338,9 +340,6 @@ function getGameInfo(){
    return gameInfo;
 }
 
-function askingForPartnerCardBlind(event){
-    currentPlayer.askingForPartnerCardBlind=event.currentTarget.checked;
-}
 function getNumberOfTricksToWinText(numberOfTricksToWin,partnerName,highestBid){
     switch(numberOfTricksToWin){
         case 0:
@@ -437,7 +436,7 @@ class OnlinePlayer extends Player{
         // add the tricks won by the partner
         let partnerName=this._game.getPartnerName(this._index);
         // if(partner)numberOfTricksWon+=player.getNumberOfTricksWon();
-        document.getElementById("tricks-won-so-far").innerHTML=String(numberOfTricksWon);
+        document.getElementById("tricks-won-so-far").innerHTML=String(numberOfTricksWon)+(partnerName?" (samen met "+partnerName+")":"");
         // show the number of tricks this player is supposed to win in total
         document.getElementById("tricks-to-win").innerHTML=getNumberOfTricksToWinText(this._numberOfTricksToWin,partnerName,this._game.getHighestBid());
         this._card=null; // get rid of any currently card
