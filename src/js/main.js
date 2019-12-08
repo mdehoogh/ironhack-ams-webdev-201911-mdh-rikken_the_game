@@ -112,7 +112,7 @@ function showTrick(trick,playerIndex){
     console.log("Showing trick ",trick);
     if(trick.numberOfCards==0&&currentPlayer._game.getPartnerRank()>=0){ // once suffices
         for(let partnerSuiteElement of document.getElementsByClassName('partner-suite'))partnerSuiteElement.innerHTML=DUTCH_SUITE_NAMES[currentPlayer._game.getPartnerSuite()];
-        for(let partnerRankElement of document.getElementsByClassName('partner-suite'))partnerRankElement.innerHTML=DUTCH_RANK_NAMES[currentPlayer._game.getPartnerRank()];
+        for(let partnerRankElement of document.getElementsByClassName('partner-rank'))partnerRankElement.innerHTML=DUTCH_RANK_NAMES[currentPlayer._game.getPartnerRank()];
     }
     // if this is the trump player that is can ask for the partner card (either non-blind or blind) flag the checkbox
     if(trick.canAskForPartnerCard!=0){
@@ -509,7 +509,7 @@ class OnlinePlayer extends Player{
                         // TODO should be detected by the game preferably
                         if(suite==this._game.getPartnerSuite()){
                             this._trick.askingForPartnerCard=1;
-                            alert("\tNON_BLIND");
+                            ////alert("\tNON_BLIND");
                         }
                     }else
                     if(this._trick.canAskForPartnerCard<0){ // could be blind
@@ -518,10 +518,10 @@ class OnlinePlayer extends Player{
                         if(document.getElementById("ask-partner-card-blind").checked&&
                             (suite!=this._game.getTrumpSuite()||confirm("Wilt U de "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game.getPartnerRank()]+" (blind) vragen met een troef?"))){
                             this._trick.askingForPartnerCard=-1; // yes, asking blind!!
-                            alert("\tBLIND!");
+                            /////alert("\tBLIND!");
                         }
                     }else
-                        alert("Not indicated!!!!");
+                        /*alert("Not indicated!!!!")*/;
                     /* replacing:
                         // so, could be asking
                         // not asking when playing trump!!

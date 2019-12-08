@@ -411,14 +411,12 @@ class RikkenTheGame extends PlayerGame{
                             break;
                     }
                 }else{
-                    // this player could be the partner of another player
-                    // the number of tricks to win together will also always be 8
-                    if(player.partner>=0){
-                        player.setNumberOfTricksToWin(8);
-                    }else{
-                        // playing against a team with trump
-                        if(this._highestBid===BID_TROELA||this._highestBid===BID_RIK||this._highestBid===BID_RIK_BETER)
-                            player.setNumberOfTricksToWin(6);
+                    // not a 'highest bid player', if it's not a solitary game it depends on the friendlyness of the trump player
+                    switch(this._highestBid){
+                        case BID_TROELA:case BID_RIK:case BID_RIK_BETER:
+                            // playing with trump with a partner
+                            player.setNumberOfTricksToWin(player.isFriendly(this.getTrumpPlayer())?8:6);
+                            break;
                     }
                 }
             }else
