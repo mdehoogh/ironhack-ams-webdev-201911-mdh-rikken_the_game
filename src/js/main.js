@@ -493,7 +493,9 @@ class OnlinePlayer extends Player{
     _cardPlayedWithSuiteAndIndex(suite,index){
         let card=(suite<this._suiteCards.length&&this._suiteCards[suite].length?this._suiteCards[suite][index]:null);
         if(card){
-            this._trick.askingForPartnerCard=0; // -1 when asking blind, 0 not asking, 1 if asking
+            // TODO checking should NOT be done by the player BUT by the trick itself!!!
+            // BUG FIX: do NOT do the following here, but only at the start of a trick, or NOT at all!!!!!
+            ////////////this._trick.askingForPartnerCard=0; // -1 when asking blind, 0 not asking, 1 if asking
             // CAN'T call _setCard (in base class Player) if the card cannot be played!!!
             if(this._trick.numberOfCards==0){ // first card in the trick played
                 // theoretically the card can be played but it might be the card with which the partner card is asked!!
@@ -508,7 +510,7 @@ class OnlinePlayer extends Player{
                         // TODO should be detected by the game preferably
                         if(suite==this._game.getPartnerSuite()){
                             this._trick.askingForPartnerCard=1;
-                            console.log("\tNON_BLIND");
+                            alert("\tNON_BLIND");
                         }
                     }else
                     if(this._trick.canAskForPartnerCard<0){ // could be blind
@@ -517,10 +519,10 @@ class OnlinePlayer extends Player{
                         if(document.getElementById("ask-partner-card-blind").checked&&
                             (suite!=this._game.getTrumpSuite()||confirm("Wilt U de "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game.getPartnerRank()]+" (blind) vragen met een troef?"))){
                             this._trick.askingForPartnerCard=-1; // yes, asking blind!!
-                            console.log("\tBLIND!");
+                            alert("\tBLIND!");
                         }
                     }else
-                        console.log("Not indicated!!!!");
+                        alert("Not indicated!!!!");
                     /* replacing:
                         // so, could be asking
                         // not asking when playing trump!!

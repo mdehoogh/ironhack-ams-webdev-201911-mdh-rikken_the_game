@@ -75,6 +75,7 @@ class Trick extends CardHolder{
         if(askingForPartnerCard!=0&&this.numberOfCards>0)
             throw new Error("Opgeven de partner aas/heer (blind) te vragen niet meer toegestaan.");
         this._askingForPartnerCard=askingForPartnerCard;
+        console.log("Asking for partner card set to "+this._askingForPartnerCard+".");
     }
 
     _setWinnerCard(winnerCard){
