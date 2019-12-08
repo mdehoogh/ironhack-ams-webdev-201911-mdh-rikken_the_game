@@ -57,13 +57,15 @@ function toggleBidderCards(event){
  */
 function showPlayerNames(){
     // in the header row of the tricks played table
-    let tricksPlayedTableHeader=document.getElementById("tricks-played-table").querySelector("thead");
-    let row=tricksPlayedTableHeader.children[0]; // the row we're interested in filling
-    for(player=0;player<rikkenTheGame.numberOfPlayers;player++){
-        let cell=row.children[player+1]; // use player to get the 'real' player column!!
-        let playerName=rikkenTheGame.getPlayerName(player);
-        console.log("Name of player #"+(player+1)+": '"+playerName+"'.");
-        cell.innerHTML=playerName;
+    for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table")){
+        let tricksPlayedTableHeader=tricksPlayedTable.querySelector("thead");
+        let row=tricksPlayedTableHeader.children[0]; // the row we're interested in filling
+        for(player=0;player<rikkenTheGame.numberOfPlayers;player++){
+            let cell=row.children[player+1]; // use player to get the 'real' player column!!
+            let playerName=rikkenTheGame.getPlayerName(player);
+            console.log("Name of player #"+(player+1)+": '"+playerName+"'.");
+            cell.innerHTML=playerName;
+        }
     }
 }
 
@@ -257,29 +259,31 @@ function updatePlayerSuiteCards(suiteCards){
     console.log("Current player cards to choose from shown!");
 }
 
-function clearTricksPlayedTable(){
-    let tricksPlayedTableBody=document.getElementById("tricks-played-table").querySelector("tbody");
-    for(let tricksPlayedTableCell of tricksPlayedTableBody.querySelectorAll('td'))
-        tricksPlayedTableCell.innerHTML="";
+function clearTricksPlayedTables(){
+    for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table"))
+        for(let tricksPlayedTableCell of tricksPlayedTable.querySelector("tbody").querySelectorAll('td'))
+            tricksPlayedTableCell.innerHTML="";
 }
-function updateTricksPlayedTable(){
+function updateTricksPlayedTables(){
     let lastTrickPlayedIndex=rikkenTheGame.numberOfTricksPlayed-1;
     if(lastTrickPlayedIndex>=0){
         let trick=rikkenTheGame.getTrickAtIndex(lastTrickPlayedIndex);
-        let tricksPlayedTablebody=document.getElementById("tricks-played-table").querySelector("tbody");
-        let row=tricksPlayedTablebody.children[lastTrickPlayedIndex]; // the row we're interested in filling
-        row.children[0].innerHTML=String(rikkenTheGame.numberOfTricksPlayed);
-        for(trickPlayer=0;trickPlayer<trick._cards.length;trickPlayer++){
-            let player=(trickPlayer+trick.firstPlayer)%4;
-            let cell=row.children[player+1]; // use player to get the 'real' player column!!
-            let card=trick._cards[trickPlayer];
-            cell.innerHTML=String(trickPlayer+1)+": "+card.getTextRepresentation();
-            if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!
-            cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
-            // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
+        for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table")){
+            let tricksPlayedTablebody=tricksPlayedTable.querySelector("tbody");
+            let row=tricksPlayedTablebody.children[lastTrickPlayedIndex]; // the row we're interested in filling
+            row.children[0].innerHTML=String(rikkenTheGame.numberOfTricksPlayed);
+            for(trickPlayer=0;trickPlayer<trick._cards.length;trickPlayer++){
+                let player=(trickPlayer+trick.firstPlayer)%4;
+                let cell=row.children[player+1]; // use player to get the 'real' player column!!
+                let card=trick._cards[trickPlayer];
+                cell.innerHTML=String(trickPlayer+1)+": "+card.getTextRepresentation();
+                if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!
+                cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
+                // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
+            }
+            row.children[5].innerHTML=rikkenTheGame.getTeamName(trick.winner); // show who won the trick!!
+            row.children[6].innerHTML=rikkenTheGame.getPlayerAtIndex(trick.winner).getNumberOfTricksWon(); // show who won the trick!!
         }
-        row.children[5].innerHTML=rikkenTheGame.getTeamName(trick.winner); // show who won the trick!!
-        row.children[6].innerHTML=rikkenTheGame.getPlayerAtIndex(trick.winner).getNumberOfTricksWon(); // show who won the trick!!
     }
 }
 
@@ -428,7 +432,7 @@ class OnlinePlayer extends Player{
     playACard(trick){
         currentPlayer=this;
         // if this is a new trick update the tricks played table with the previous trick
-        if(trick.numberOfCards==0)updateTricksPlayedTable();
+        if(trick.numberOfCards==0)updateTricksPlayedTables();
         /* see showTrick()
         document.getElementById("can-ask-for-partner-card-blind").style.display=(trick.canAskForPartnerCardBlind?"block":"none");
         // always start unchecked...
@@ -650,10 +654,12 @@ class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
                 setPage("page-playing");
                 break;
             case FINISHED:
+                /*
                 if(playmode==PLAYMODE_DEMO){// show me the last trick played...
-                    updateTricksPlayedTable();
+                    updateTricksPlayedTables();
                     // TODO perhaps we might as well clear the played cards!!!!
                 }else
+                */
                     setPage("page-finished");
                 break;
         }
@@ -693,7 +699,7 @@ function setPage(newPage){
                     case 4:setInfo("Wacht op het verzoek tot het opgeven van de troefkleur en/of de aas/heer.");break;
                     case 7:
                         {
-                            clearTricksPlayedTable();
+                            clearTricksPlayedTables();
                             showPlayerNames();
                             setInfo("Wacht op het verzoek tot het (bij)spelen van een kaart.");
                         }

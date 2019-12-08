@@ -145,20 +145,19 @@ class RikkenTheGame extends PlayerGame{
         return "Me";
     }
 
+    // called when RikkenTheGame moves into the IDLE state
     _initializeTheGame(){
-        // this means moving the game to the initialize state
         // it's easiest to simply create a new deck of cards each time (instead of repossessing the cards)
         this.deckOfCards=new DeckOfCards();
+        this._player=0; // the current player
         // the successor of the current dealer is to deal next
         this.dealer=(this.dealer+1)%this.numberOfPlayers;
-        this._player=0; // the current player
         this._trumpSuite=-1; // the trump suite
         this._partnerSuite=-1;this._partnerRank=-1; // the card of the partner (for games with trump and a partner)
         this._trick=null; // the current trick
         this._tricks=[]; // the tricks played
         this._highestBid=-1; // no highest bid yet
         this._highestBidPlayers=[]; // all the players that made the highest bid (and are playing it)
-        this._passBidCount=0; // the number of players that bid 'pass'
         this._playersBids=[]; // at most 5 players
         let player=this.numberOfPlayers;while(--player>=0)this._playersBids.push([]);
         // MDH@08DEC2019: keep track of the partner of each player in this.partners
@@ -299,19 +298,23 @@ class RikkenTheGame extends PlayerGame{
     // after dealing the cards, the game can be played
     _startTheGame(){
         this._highestBidPlayers=[];
+        this._highestBid=BID_PAS;
+        //this._highestBid=-1;this._trumpSuite=-1;this._partnerSuite=-1;this._partnerRank=-1;
         this._checkForTroela(); // will if detected register the highest bidder!!!!
         // if a player has 3 aces the play to play is 'troela' and therefore the accepted bid
-        if(this._highestBidPlayers.length>0){ // we will be playing 'troela'
-            this._highestBid=BID_TROELA; // register as (final) highest bid
+        if(this._highestBid===BID_TROELA){ // we will be playing 'troela'
             // better to go through the _setPartnerSuite()
             // NOTE the trump suite has been set, as well as the player with the fourth ace
             // NOTE we're skipping the entire process of asking for the partner card as we know all that already
-            this._partnerRank=12; // of course it's an ace
-            this._player=this.fourthAcePlayer; // select the fourth ace player as the player to play first
             // partners are known to
-            this._setPartners(this.fourthAcePlayer,this._highestBidPlayers[0]);
+            // obsolete because done by _setPartnerSuite() as well: this._setPartners(this.fourthAcePlayer,this._highestBidPlayers[0]);
             this._tellPlayersWhoTheirPartnerIs(); // ascertain that all players known there partner
-            this._setPartnerSuite(this.getTrumpSuite()); // of course the partner card suite is the trump suite
+            this._partnerRank=12; // MUST BE SET otherwise can't set the partner suite!!!
+            // the player with the three aces will be the trump player
+            this._setPartnerSuite(this._highestBidPlayers[0],this.getTrumpSuite()); // of course the partner card suite is the trump suite
+            if(!this._partners)throw new Error("Partner of 'troela' player unknown!");
+            this._tellPlayersWhoTheirPartnerIs(); // we have to do this before playing
+            this._startPlaying(this.fourthAcePlayer);
             ////this._trumpSuite=this._players[this.fourthAcePlayer].getSuitesWithRank(RANK_ACE);
             // set the current player to the fourth ace player (which will take care of assigning all other partner properties)
             // no need to choose trump or partner, so we can start playing the game with the fourth ace player to play first!!
@@ -477,8 +480,19 @@ class RikkenTheGame extends PlayerGame{
      * determines the rank of the partner card to be asked for
      */
     _getPartnerRank(){
-        let partnerRank=RANK_ACE;
-        while(this._players[this._player].getNumberOfCardsWithRank(partnerRank)==4)partnerRank--;
+        // NOTE the player playing 'rik' cannot have 3 aces, so unless the player has 4 aces there's always an ace to ask (even blind)
+        //      it's different for the kings though, as this player could have 3 kings
+        // TODO need to check for that as well
+        let player=this._players[this._player];
+        let partnerRank=(player?RANK_ACE:-1);
+        while(partnerRank>=0){
+            let partnerSuites=player.getSuitesWithRank(partnerRank); // all the suites with that rank
+            // remove trump suite
+            let partnerTrumpSuiteIndex=partnerSuites.indexOf(this._trumpSuite);
+            if(partnerTrumpSuiteIndex>=0)partnerSuites.splice(partnerTrumpSuiteIndex,1);
+            if(partnerSuites.length<3)break; // if less than three left it's selectable
+            partnerRank--;
+        }
         return partnerRank;
     }
 
@@ -488,11 +502,14 @@ class RikkenTheGame extends PlayerGame{
      * @param {*} trumpSuite 
      */
     _setTrumpSuite(trumpSuite){
+        // ASSERT shouldn't be called when the bid is 'troela'
+        if(this._highestBid===BID_TROELA)throw new Error("Setting the trump suite this way not allowed when playing 'troela'!");
         this._trumpSuite=trumpSuite;
         if(this._trumpSuite<0){
             console.error("Cannot remove the trump suite this way!");
             return;
         }
+        this._partnerRank=-1; // safety measure 
         console.log(">>> "+capitalize(SUITE_NAMES[this._trumpSuite])+" selected as trump playing '"+BID_NAMES[this._highestBid]+"'.");
         // is this a trump game with a partner (ace/king) to ask for?
         // I guess we can pass along the rank, which means we can choose the rank ourselves
@@ -505,9 +522,13 @@ class RikkenTheGame extends PlayerGame{
     }
     /**
      * setter for setting the parent card suite
+     * @param {*} trumpPlayer the player who will be playing the trump game (apart from with 'troela' the current player)
      * @param {*} partnerSuite 
      */
-    _setPartnerSuite(partnerSuite){
+    _setPartnerSuite(trumpPlayer,partnerSuite){
+        // IMPORTANT this._player has to be set to the trump player before calling _setPartnerSuite
+        if(partnerSuite>=0&&this._partnerRank<=0)
+            throw new Error("Can't accept the partner card suite without a partner card rank!");
         this._partnerSuite=partnerSuite;
         this._partners=null; // precaution
         if(this._partnerSuite>=0){
@@ -518,15 +539,12 @@ class RikkenTheGame extends PlayerGame{
                 alert("Programmafout: Partner met "+DUTCH_SUITE_NAMES[this._partnerSuite]+" "+DUTCH_RANK_NAMES[this._partnerRank]+" niet gevonden!");
                 return;
             }
-            this._setPartners(this._player,partner);
+            this._setPartners(trumpPlayer,partner);
             /* replacing:
                 partnerPlayer.partner=this._player;
                 console.log("Partner of "+this.getPlayerName(this._player)+": "+partnerPlayer.name+"'.");
             */
         }
-        // the only player that knows its partner is the player that holds this card
-        // the other players will still be in the dark
-        this._startPlaying((this.dealer+1)%this.numberOfPlayers);
     }
     
     /**
@@ -550,14 +568,14 @@ class RikkenTheGame extends PlayerGame{
             // is it a trump game?
             if(BIDS_ALL_CAN_PLAY.indexOf(this._highestBid)<0){ // yes
                 // if the trump is not known we have to ask for the trump suite (color) first
+                this._player=this._highestBidPlayers[0]; // required by _setTrumpSuite as well
                 if(BIDS_WITH_PARTNER_IN_HEARTS.indexOf(this._highestBid)<0){
-                    this._player=this._highestBidPlayers[0]; // TODO should this be here?
                     // pass along all the suites the player has (from which to choose from)
                     this._players[this._player].chooseTrumpSuite(this._players[this._player].getSuites());
                 }else // trump is known (which can only be hearts) TODO what if this player does not have any trump cards?????????
                     this._setTrumpSuite(SUITE_NAMES.indexOf("heart")); // set the trump suite directly!!!
             }else // not a trump suite
-                // played by the highest bidder on his own
+                // played by the highest bidder(s) on his own
                 this._startPlaying((this.dealer+1)%this.numberOfPlayers);
         }else{ // everybody passed, so also not a trump suite
             this._highestBid=BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW;
@@ -579,9 +597,11 @@ class RikkenTheGame extends PlayerGame{
             if(aces==1){oneAcePlayer=player;oneAceSuite=aceSuites[0];}else threeAcePlayer=player;
         }
         if(threeAcePlayer>=0){
-            this._highestBidPlayers.push(threeAcePlayer); // TODO perhaps this should be done elsewhere?????
+            this._highestBidPlayers=[threeAcePlayer]; // TODO perhaps this should be done elsewhere?????
             this.fourthAcePlayer=oneAcePlayer;
-            this._setTrumpSuite(oneAceSuite); // TODO is this the way to go??????
+            // NOTE with troela do NOT call _setTrumpSuite() as that would start playing immediately (which we don't want to)
+            this._trumpSuite=oneAceSuite;
+            this._bid=BID_TROELA;
         }else
             this.fourthAcePlayer=-1;
     }
@@ -676,7 +696,11 @@ class RikkenTheGame extends PlayerGame{
     /**
      * to be called by the player with the highest bid when selecting the partner suite
      */
-    partnerSuiteChosen(chosenPartnerSuite){this._setPartnerSuite(chosenPartnerSuite);}
+    partnerSuiteChosen(chosenPartnerSuite){
+        this._setPartnerSuite(this._player,chosenPartnerSuite);
+        // player left from the dealer to start playing the first trick
+        this._startPlaying((this.dealer+1)%this.numberOfPlayers);
+    }
 
     getTrickAtIndex(index){return(index>=0&&index<this._tricks.length?this._tricks[index]:null);}
 

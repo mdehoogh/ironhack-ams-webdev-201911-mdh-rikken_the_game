@@ -298,21 +298,28 @@ class Player extends CardHolder{
 
     // every player can be checked whether friend (1) or foo (-1) or unknown (0)
     isFriendly(player){
-        if(player===this._index)return 1; // I'm friendly to me
-        let bid=this._game.getHighestBid();
-        if(bid!=BID_TROELA&&bid!=BID_RIK&&bid!=BID_RIK_BETER)return -1; // in a solitary game nobody is friendly
-        // ASSERT not a solitary game so player could be the partner in crime
-        // if partner is known (i.e. the partner card is no longer in the game)
-        if(this._partner>=0)return(player===this._partner?1:-1); 
-        // ASSERT partner unknown (i.e. partner card still in the game)
-        let trumpPlayer=this._game.getTrumpPlayer();
-        // if I'm the trump player, assume ALL unfriendly BUT no I don't know who my partner is all could be
-        if(this._index===trumpPlayer)return 0; // unknown
-        if(this.containsCard(this._game.getPartnerSuite(),this._game.getPartnerRank())) // I have the partner card
-            return(player==trumpPlayer?1:-1); // the trump player is friendly, the others are unfriendly
-        // ASSERT I'm not the trump player, and I'm not with the trump player as well
-        // the trump player is foo, the rest I don't know yet
-        return(player===trumpPlayer?-1:0);
+        if(player===this._index)return 2; // I'm mucho friendly to myself
+        let partnerSuite=this._game.getPartnerSuite();
+        if(partnerSuite>=0){ // a non-solitary game
+            // ASSERT not a solitary game so player could be the partner in crime
+            // if partner is known (i.e. the partner card is no longer in the game)
+            if(this._partner>=0)return(player===this._partner?1:-1); 
+            // ASSERT partner unknown (i.e. partner card still in the game)
+            let trumpPlayer=this._game.getTrumpPlayer();
+            // if I'm the trump player, assume ALL unfriendly BUT no I don't know who my partner is all could be
+            if(this._index===trumpPlayer)return 0; // unknown
+            if(this.containsCard(partnerSuite,this._game.getPartnerRank())) // I have the partner card
+                return(player==trumpPlayer?1:-1); // the trump player is friendly, the others are unfriendly
+            // ASSERT I'm not the trump player, and I'm not with the trump player as well
+            // the trump player is foo, the rest I don't know yet
+            return(player===trumpPlayer?-1:0);
+        }
+        // ASSERT a solitary game
+        // if I'm one of the solitary players, everyone else is a foo
+        if(this._game.getHighestBidders().indexOf(this._index)>=0)return -1;
+        // ASSERT not one of the solitary players
+        //        if player is a solitary player it's a foo, otherwise it's us against them!!!!
+        return(this._game.getHighestBidders().indexOf(player)>=0?-1:1);
     }
 
     toString(){return this.name;}
