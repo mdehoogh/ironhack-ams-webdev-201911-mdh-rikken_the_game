@@ -157,11 +157,13 @@ class RikkenTheGame extends PlayerGame{
         this._tricks=[]; // the tricks played
         this._highestBid=-1; // no highest bid yet
         this._highestBidPlayers=[]; // all the players that made the highest bid (and are playing it)
-        this._partnerCardPlayedStatus=-1; // whether to check for the partner card of not (-1: not at all, 0=still not played, 1=played)
-        this._askingForThePartnerCardBlind=false; // when a user asks for the partner card blind
         this._passBidCount=0; // the number of players that bid 'pass'
         this._playersBids=[]; // at most 5 players
         let player=this.numberOfPlayers;while(--player>=0)this._playersBids.push([]);
+        // MDH@08DEC2019: keep track of the partner of each player in this.partners
+        //                from the start of the game
+        this._partners=null;
+        this._arePartnersKnown=false; // should be set to true as soon the partner card was played!!
     }
 
     constructor(players,eventListener){
@@ -261,13 +263,11 @@ class RikkenTheGame extends PlayerGame{
     }
 
     getPlayerWithCard(suite,rank){
-        for(let playerIndex=0;playerIndex<this.numberOfPlayers;playerIndex++){
-            let player=this._players[playerIndex];
-            // NOTE containsCard is defined in CardHolder!
-            if(player.containsCard(suite,rank))return player;
-        }
-        console.log("BUG BUG BUG: Player with card ("+SUITE_NAMES[suite]+","+RANK_NAMES[rank]+") not found!");
-        return null;
+        for(let playerIndex=0;playerIndex<this.numberOfPlayers;playerIndex++)
+            if(this._players[playerIndex].containsCard(suite,rank))
+                return playerIndex;
+        alert("BUG BUG BUG: Player with card ("+SUITE_NAMES[suite]+","+RANK_NAMES[rank]+") not found!");
+        return -1;
     }
 
     isPartnerCard(card){return(card.suite==this._partnerSuite&&card.rank==this._partnerRank);}
@@ -279,13 +279,20 @@ class RikkenTheGame extends PlayerGame{
      */
     _setPartners(partner1,partner2){
         console.log("Player #"+(partner1)+" and #"+(partner2)+" teaming up!");
+        // MDH@08DEC2019: instead of directly setting the partner property of each player
+        //                we wait with doing so as soon as the partner is known (by playing the partner card)
+        this._partners=[-1,-1,-1,-1];
         let teams=[[partner1,partner2],[]];
         this._players.forEach((player)=>{if(player._index!==partner1&&player._index!==partner2)teams[1].push(player._index);});
         teams.forEach((team)=>{
             console.log("Team: ",team);
-            this._players[team[0]].partner=team[1];
-            this._players[team[1]].partner=team[0];
+            this._partners[team[0]]=team[1];
+            this._partners[team[1]]=team[0];
         });
+    }
+    _tellPlayersWhoTheirPartnerIs(){
+        this._arePartnersKnown=true;
+        this._players.forEach((player)=>{player.partner=this._partners[player._index];});
     }
 
     // after dealing the cards, the game can be played
@@ -295,11 +302,19 @@ class RikkenTheGame extends PlayerGame{
         // if a player has 3 aces the play to play is 'troela' and therefore the accepted bid
         if(this._highestBidPlayers.length>0){ // we will be playing 'troela'
             this._highestBid=BID_TROELA; // register as (final) highest bid
+            // better to go through the _setPartnerSuite()
+            // NOTE the trump suite has been set, as well as the player with the fourth ace
+            // NOTE we're skipping the entire process of asking for the partner card as we know all that already
+            this._partnerRank=12; // of course it's an ace
+            this._player=this.fourthAcePlayer; // select the fourth ace player as the player to play first
+            // partners are known to
+            this._setPartners(this.fourthAcePlayer,this._highestBidPlayers[0]);
+            this._tellPlayersWhoTheirPartnerIs(); // ascertain that all players known there partner
+            this._setPartnerSuite(this.getTrumpSuite()); // of course the partner card suite is the trump suite
             ////this._trumpSuite=this._players[this.fourthAcePlayer].getSuitesWithRank(RANK_ACE);
             // set the current player to the fourth ace player (which will take care of assigning all other partner properties)
-            this._setPartners(this.fourthAcePlayer,this._highestBidPlayers[0]);
             // no need to choose trump or partner, so we can start playing the game with the fourth ace player to play first!!
-            this._startPlaying(this.fourthAcePlayer);
+            // replacing: this._startPlaying(this.fourthAcePlayer);
         }else
             this.state=BIDDING;
     }
@@ -324,7 +339,7 @@ class RikkenTheGame extends PlayerGame{
         // is this a game where there's a partner card that hasn't been played yet
         // alternatively put: should there be a partner and there isn't one yet?????
         if(this.getTrumpPlayer()===this._player){ // this is trump player is playing the first card
-            if(this._players[this._player].partner<0) // partner not known yet, therefore the partner card has not been played yet
+            if(!this._arePartnersKnown) // partner not known yet, therefore the partner card has not been played yet
                 // asking for the partner card is only possible when the player does not have the partner cards anymore
                 return(this._players[this._player].getNumberOfCardsWithSuite(this.getPartnerSuite())>0?1:-1);
             console.log("Partner known, so no need to ask for the partner card anymore!");
@@ -495,14 +510,20 @@ class RikkenTheGame extends PlayerGame{
      */
     _setPartnerSuite(partnerSuite){
         this._partnerSuite=partnerSuite;
+        this._partners=null; // precaution
         if(this._partnerSuite>=0){
             console.log("Selected partner suite: "+SUITE_NAMES[this._partnerSuite]+".");
             // here we can determine who will be the partner and register that!!!
-            let partnerPlayer=this.getPlayerWithCard(this._partnerSuite,this._partnerRank);
-            if(partnerPlayer){
+            let partner=this.getPlayerWithCard(this._partnerSuite,this._partnerRank);
+            if(partner<0){
+                alert("Programmafout: Partner met "+DUTCH_SUITE_NAMES[this._partnerSuite]+" "+DUTCH_RANK_NAMES[this._partnerRank]+" niet gevonden!");
+                return;
+            }
+            this._setPartners(this._player,partner);
+            /* replacing:
                 partnerPlayer.partner=this._player;
                 console.log("Partner of "+this.getPlayerName(this._player)+": "+partnerPlayer.name+"'.");
-            }
+            */
         }
         // the only player that knows its partner is the player that holds this card
         // the other players will still be in the dark
@@ -671,6 +692,20 @@ class RikkenTheGame extends PlayerGame{
         // is the trick complete?
         if(this._trick.numberOfCards==4){
             // 1. determine whether this trick contains the partner card of the highest bidder
+            if(this._partners){ // a non-solitary game
+                let partnerCardPresentInTrick=this._trick.containsCard(this.getPartnerSuite(),this.getPartnerRank());
+                ////////if(partnerCardPresentInTrick)console.log(">>>> Partner card detected! <<<<");
+                // serious error if it should have been there and it wasn't!!
+                if(this._trick.askingForPartnerCard!=0) // it was asked for
+                    if(!partnerCardPresentInTrick)
+                        throw new Error("The partner card was asked for, but was not present in the trick though.");
+                if(partnerCardPresentInTrick){
+                    debugger
+                    // if the partners are now known yet (in a regular rik situation then)
+                    if(!this._arePartnersKnown)this._tellPlayersWhoTheirPartnerIs();
+                }
+            }
+            /* replacing:
             // NOTE if this._trick.askingForPartnerCard is not zero, it should!!!
             let partner=-1;
             ////if(this._partnerCardPlayedStatus==0){ // partner card not received yet
@@ -680,10 +715,6 @@ class RikkenTheGame extends PlayerGame{
                     ///////this._partnerCardPlayedStatus=1; // this means the user cannot ask for this card again!!!
                     // the partner is now known, so everyone now knows its partner
                     this._setPartners(this._highestBidPlayers[0],partner);
-                    /* replacing:
-                    this._players[this._highestBidPlayers[0]].partner=partner;
-                    this._players[partner].partner=this.highestBidPlayers[0];
-                    */
                     // TODO the other two should also point to each other
                 }else
                 if(this._trick.askingForPartnerCard!=0){
@@ -694,6 +725,7 @@ class RikkenTheGame extends PlayerGame{
                     return;
                 }
             /////}
+            */
             // 2. register the trick
             this._tricks.push(this._trick); // register the trick
             // MDH@06DEC2019: the trick now itself keeps track of the winner card, so no need to do it here anymore
