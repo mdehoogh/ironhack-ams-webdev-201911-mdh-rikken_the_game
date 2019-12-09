@@ -90,9 +90,14 @@ td, th {
 }
 
 .page-header{
+    background-color: rgb(44, 103, 170);
+    padding:4px 8px;
+    color:white;
+    /*border-top:5px;
     border-bottom:5px;
     border-color:red;
-    /* margin-left:16px;
+   */
+     /* margin-left:16px;
     margin-right:16px; */
 }
 

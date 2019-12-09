@@ -654,13 +654,8 @@ class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
                 setPage("page-playing");
                 break;
             case FINISHED:
-                /*
-                if(playmode==PLAYMODE_DEMO){// show me the last trick played...
-                    updateTricksPlayedTables();
-                    // TODO perhaps we might as well clear the played cards!!!!
-                }else
-                */
-                    setPage("page-finished");
+                updateTricksPlayedTables(); // so we get to see the last trick as well!!!
+                setPage("page-finished");
                 break;
         }
         console.log("ONLINE >>> The state of rikkenTheGame changed to '"+tostate+"'.");
