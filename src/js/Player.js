@@ -39,15 +39,20 @@ class Player extends CardHolder{
         console.log("Player '"+this.name+"' event listeners: "+this._eventListeners+".");
     }
 
-    _prepareForPlaying(){
+    // whenever a game is started, call newGame!!
+    newGame(){
+        if(this._index<0||!this._game)
+            throw new Error("Player "+this.name+" unable to prepare for playing: not associated with a game yet.");
+        if(this.numberOfCards>0){
+            alert("BUG: Player "+this.name+" still has "+this.numberOfCards+" cards.");
+            this._cards=[];
+        }
         // default player remembering its choices
         this._bid=-1; // the last bid of this player
         this._trumpSuite=-1;
         this._partnerSuite=-1;
         this._card=null;
         // the game being played, and the index within that game
-        this._playerIndex=-1;
-        this._game=null;
         this._partner=-1;
         this._tricksWon=[]; // the tricks won (in any game)
         this._numberOfTricksToWin=-1; // doesn't matter
@@ -60,7 +65,9 @@ class Player extends CardHolder{
             throw new Error("Player event listener of wrong type.");
         this._eventListeners=[];
         if(playerEventListener)this.addEventListener(playerEventListener);
-        this._prepareForPlaying();
+        // wait for receiving game and index
+        this._index=-1;this._game=null; // waiting for the game to be plugged in (once)
+        // removed wait until getting called through newGame: this._prepareForPlaying();
     }
 
     // getters exposing information to the made choice
@@ -164,9 +171,6 @@ class Player extends CardHolder{
         if(this._game)this._game.partnerSuiteChosen(partnerSuite);
     }
     _setPartnerSuite(partnerSuite){this.partnerSuiteChosen(this._partnerSuite=partnerSuite);}
-    
-    // when a game is over, gameOver() should be called so a player can reset some stuff!!! (see RikkenTheGame)
-    gameOver(){this._prepareForPlaying();}
 
     // can be asked to make a bid passing in the highest bid so far
     // NOTE this would be an 'abstract' method in classical OO

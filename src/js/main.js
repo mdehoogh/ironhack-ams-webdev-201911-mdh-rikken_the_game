@@ -2,12 +2,12 @@
 const DUTCH_RANK_NAMES=["twee","drie","vier","vijf","zes","zeven","acht","negen","tien","boer","vrouw","heer","aas"];
 const DUTCH_SUITE_NAMES=["ruiten","klaveren","harten","schoppen"];
 
+var infoElement=document.getElementById('info');
 function setInfo(info){
-    document.getElementById('info').innerHTML=info;
+    console.log("Rikken - het spel >>> info: "+info);
+    if(infoElement)infoElement.innerHTML=info;
 }
-function clearInfo(){
-    document.getElementById('info').innerHTML="";
-}
+function clearInfo(){if(infoElement)infoElement.innerHTML="";}
 
 function capitalize(str){return(str?(str.length?str[0].toUpperCase()+str.slice(1):""):"?");}
 
@@ -616,17 +616,24 @@ function playablecardButtonClicked(event){
     currentPlayer._cardPlayedWithSuiteAndIndex(parseInt(playablecardCell.getAttribute("data-suite-id")),parseInt(playablecardCell.getAttribute("data-suite-index")));
 }
 
-function newGame(players){
+var players=null;
 
-    if(!players&&rikkenTheGame)players=rikkenTheGame._players; // if this is a next game to play
+function newGame(){
 
-    if(!players){alert("No players!");return;}
+    console.log("Rikken - het spel >>> Nieuw spel beginnen!");
+    if(!players&&rikkenTheGame)players=rikkenTheGame._players; // take players from the last game (to continue with)
+    
+    if(!players){rikkenTheGame=null;newPlayers();} // game is no use (to get players)
 
-    rikkenTheGame=null;
+    if(!players){alert("Aanmaken nieuwe spelers mislukt!");return;}
 
     try{
-        rikkenTheGame=new RikkenTheGame(players,onlineRikkenTheGameEventListener);
+        if(!rikkenTheGame){
+            rikkenTheGame=new RikkenTheGame(players,onlineRikkenTheGameEventListener);
+            console.log("Rikken - het spel >>> Spel aangemaakt!");
+        }
         rikkenTheGame.start();
+        console.log("Rikken - het spel >>> Spel gestart!");
     }catch(error){
         setInfo("Starten van het spel mislukt: "+error);
     }
@@ -635,6 +642,7 @@ function newGame(players){
 
 class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
     stateChanged(fromstate,tostate){
+        console.log("Rikken - het spel >>> Toestand verandert van "+fromstate+" naar "+tostate+".");
         switch(tostate){
             case IDLE:
                 setInfo("Een spel is aangemaakt.");
@@ -718,8 +726,8 @@ function cancelPage(event){
  * to be called when the new-players button is clicked, to start a new game with a new set of players
  */
 function newPlayers(){
-
-    let players=[];
+    console.log("Rikken - het spel >>> Nieuwe spelers aanmaken.");
+    players=[];
     let noPlayerNames=true;
     // iterate over all player input fields
     for(playerNameInput of document.getElementsByClassName("player-name-input")){
@@ -731,12 +739,25 @@ function newPlayers(){
             players.push(null);
     }
     if(noPlayerNames){
+        players=null;
         setInfo("Geen spelernamen opgegeven. Heb tenminste een spelernaam nodig!");
         return;
     }
+    console.log("Rikken - het spel: Nieuwe spelers aangemaakt!");
+}
 
-    newGame(players);
-
+function newGamePlayers(){
+    rikkenTheGame=null; // get rid of the game, so newGame() will call newPLayers()
+    newGame();
+}
+function cancelGame(){
+    if(!rikkenTheGame){
+        alert("Geen spel om af te breken! Laad deze web pagina opnieuw!");
+        return;
+    }
+    if(confirm("Wilt U echt het huidige spel afbreken?")){
+        rikkenTheGame.cancel();
+    }
 }
 
 window.onload=function(){
@@ -757,10 +778,12 @@ window.onload=function(){
     // event handlers for next, cancel, and newPlayers buttons
     for(let nextButton of document.getElementsByClassName('next'))nextButton.onclick=nextPage;
     for(let cancelButton of document.getElementsByClassName('cancel'))cancelButton.onclick=cancelPage;
-    for(let newPlayersButton of document.getElementsByClassName('new-players')){
-        console.log("New players!");
-        newPlayersButton.onclick=newPlayers;
-    }
+    // whenever we have new game (with the same players)
+    for(let newGameButton of document.getElementsByClassName("new-game"))newGameButton.onclick=newGame;
+    // whenever we have new player(name)s
+    for(let newGamePlayersButton of document.getElementsByClassName('new-game-players'))newGamePlayersButton.onclick=newGamePlayers;
+    // whenever the game is canceled
+    for(let cancelGameButton of document.getElementsByClassName('cancel-game'))cancelGameButton.onclick=cancelGame;
 
     // attach an onclick event handler for all bid buttons
     for(let bidButton of document.getElementsByClassName("bid"))bidButton.onclick=bidButtonClicked;
