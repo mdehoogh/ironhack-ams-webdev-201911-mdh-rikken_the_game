@@ -201,21 +201,18 @@ function askForCard(){
     }
 }
 */
-function updateBidderSuiteCards(suiteCards){
-    console.log("Showing the (current player) cards for bidding.");
-    let tablebody=document.getElementById("bidder-suitecards-table").querySelector("tbody");
-    // console.log("Suite cards: ",suiteCards);
-    let rows=tablebody.querySelectorAll("tr");
+function updateSuiteCardRows(rows,suiteCards){
+    console.log("Player suite card rows: "+rows.length+".");
     // console.log("Number of rows: ",rows.length);
-    for(let suite=0;suite<rows.length;suite++){
-        let row=rows[suite];
+    let suite=0;
+    for(let row of rows){
         /////////let suiteColor=SUITE_COLORS[suite%2];
         let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
         // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
-        let columns=row.querySelectorAll("td");
+        let cells=row.querySelectorAll("td");
+        let suiteCard=0;
         // console.log("Number of columns: ",columns.length);
-        for(let suiteCard=0;suiteCard<columns.length;suiteCard++){
-            let cell=columns[suiteCard];
+        for(let cell of cells){
             let cardInSuite=(suiteCard<cardsInSuite.length?cardsInSuite[suiteCard]:null);
             if(cardInSuite){
                 // console.log("Showing card: ",cardInSuite);
@@ -223,9 +220,23 @@ function updateBidderSuiteCards(suiteCards){
                 cell.classList.add(SUITE_NAMES[cardInSuite.suite]); // replacing: cell.style.color=suiteColor;  
             }else
                 cell.innerHTML="";
+            suiteCard++;
         }
+        suite++;
     }
 }
+// in three different pages the player cards should be shown...
+function updateBidderSuiteCards(suiteCards){
+    console.log("Showing the (current player) cards for bidding.");
+    updateSuiteCardRows(document.getElementById("bidder-suitecards-table").querySelector("tbody").querySelectorAll("tr"),suiteCards);
+}
+function updateChooseTrumpSuiteCards(suiteCards){
+    updateSuiteCardRows(document.getElementById("trump-suitecards-table").querySelector("tbody").querySelectorAll("tr"),suiteCards);
+}
+function updateChoosePartnerSuiteCards(suiteCards){
+    updateSuiteCardRows(document.getElementById("partner-suitecards-table").querySelector("tbody").querySelectorAll("tr"),suiteCards);
+}
+
 /**
  * for playing the cards are shown in buttons inside table cells
  * @param {*} suiteCards 
@@ -398,6 +409,7 @@ class OnlinePlayer extends Player{
         document.getElementById("bidder-suitecards").style.display=(playmode==PLAYMODE_DEMO?"block":"none");
         if(playmode==PLAYMODE_DEMO^document.getElementById("bidder-suitecards-button").classList.contains("active-bid-button"))
             document.getElementById("bidder-suitecards-button").classList.toggle("active-bid-button");
+        // NOTE because every player gets a turn to bid, this._suiteCards will be available when we ask for trump/partner!!!
         updateBidderSuiteCards(this._suiteCards=this._getSuiteCards());
 
         // only show the buttons
@@ -418,12 +430,14 @@ class OnlinePlayer extends Player{
     }
     chooseTrumpSuite(suites){
         setPage("page-trump-choosing");
+        updateChooseTrumpSuiteCards(this._suiteCards);
         // iterate over the trump suite buttons
         for(let suiteButton of document.querySelectorAll(".suite.trump"))
             suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
     }
     choosePartnerSuite(partnerRankName){
         setPage("page-partner-choosing");
+        updateChoosePartnerSuiteCards(this._suiteCards);
         for(let suiteButton of document.querySelectorAll("suite.partner"))
             suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
         document.getElementById('partner-rank').innerHTML=partnerRankName;
