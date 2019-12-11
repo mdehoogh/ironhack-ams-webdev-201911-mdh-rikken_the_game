@@ -1,3 +1,18 @@
+/* @font-face {
+    font-family: 'Playing Cards';
+    src: url('../font/CARDS.TTF') format("truetype");
+} */
+@font-face {
+  font-family: 'Suit-Regular';
+  src: url('../font/suit-regular.eot');
+  src: url('../font/suit-regular.eot?#iefix') format('embedded-opentype'),
+       url('../font/suit-regular.woff') format('woff'),
+       url('../font/suit-regular.ttf') format('truetype'),
+       url('../font/suit-regular.svg#suit-regular') format('svg');
+  font-weight:normal;
+  font-style:normal;
+}
+
 /*
 */
 body {
@@ -38,7 +53,8 @@ body {
 }
 
 input[type=button] {
-    font-size:1.25rem;
+    font-size:500%;
+    /* font-size:1.25rem; */
 }
 
 .pages {
@@ -61,6 +77,10 @@ input[type=button] {
     margin-right:10px; */
 }
 
+tr {
+    border-color:grey;
+    border-bottom:1px;
+}
 td, th {
     text-align:center;
     font-size:1rem;
@@ -169,11 +189,15 @@ td, th {
 }
 .club,.spade {
     color:black;
-    font-size:1.2rem;
+    font-size:1.4rem;
 }
-.card{
-    font-size:1.2rem;
+
+.card-text{
+    font-family:'Apple Symbols';
+    font-size:700%;
+    /* font-size:1.4rem; */
 }
+
 .partner{
     color:green;
 }

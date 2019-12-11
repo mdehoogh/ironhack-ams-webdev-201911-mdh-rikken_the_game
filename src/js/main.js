@@ -255,12 +255,12 @@ function updatePlayerSuiteCards(suiteCards){
         let columns=row.querySelectorAll("td");
         // console.log("Number of columns: ",columns.length);
         for(let suiteCard=0;suiteCard<columns.length;suiteCard++){
-            let cellbutton=columns[suiteCard].querySelector("input[type=button]");
+            let cellbutton=columns[suiteCard]/*.querySelector("input[type=button]")*/;
             if(!cellbutton){console.log("No cell button!");continue;}
             let cardInSuite=(suiteCard<cardsInSuite.length?cardsInSuite[suiteCard]:null);
             if(cardInSuite){
                 // console.log("Showing card: ",cardInSuite);
-                cellbutton.value=cardInSuite.getTextRepresentation();
+                cellbutton.innerHTML=cardInSuite.getTextRepresentation();
                 cellbutton.classList.add(SUITE_NAMES[cardInSuite.suite]); // replacing: cellbutton.style.color=suiteColor;
                 cellbutton.style.display="inline";
             }else // hide the button
@@ -287,7 +287,7 @@ function updateTricksPlayedTables(){
                 let player=(trickPlayer+trick.firstPlayer)%4;
                 let cell=row.children[player+1]; // use player to get the 'real' player column!!
                 let card=trick._cards[trickPlayer];
-                cell.innerHTML=String(trickPlayer+1)+": "+card.getTextRepresentation();
+                cell.innerHTML=(trickPlayer==0?"|":"")+card.getTextRepresentation(); // put | in front of first player!!!
                 if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!
                 cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
                 // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
@@ -809,8 +809,8 @@ window.onload=function(){
     // event handler for selecting a suite
     for(let suiteButton of document.querySelectorAll(".suite.bid-trump"))suiteButton.onclick=trumpSuiteButtonClicked;
     for(let suiteButton of document.querySelectorAll(".suite.bid-partner"))suiteButton.onclick=partnerSuiteButtonClicked;
-    // clicking card 'buttons' (now cells in table)
-    for(let playablecardButton of document.querySelectorAll(".playable.card"))playablecardButton.onclick=playablecardButtonClicked;
+    // clicking card 'buttons' (now cells in table), we can get rid of the button itself!!!
+    for(let playablecardButton of document.querySelectorAll(".playable.card-text"))playablecardButton.onclick=playablecardButtonClicked;
     
     // make the suite elements of a specific type show the right text!!!!
     for(let suite=0;suite<4;suite++)
