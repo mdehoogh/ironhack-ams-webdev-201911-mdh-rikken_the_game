@@ -119,17 +119,80 @@
             <!-- the cards of the current player (made visible on request) -->
             <!-- now turned into a 'collapsable' (see w3schools) -->
             <button type="button" id="bidder-suitecards-button" value="0" class='collapsible-button'>Kaarten</button>
-            <div id="bidder-suitecards">
-                <table id='bidder-suitecards-table'>
-                    <tbody>
-                        <tr class='diamond'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='club'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='heart'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='spade'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                    </tbody>
-                </table>            
+            <div id='bidder-suitecards-table'>
+                <div class='diamond suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
+                <div class='club suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
+                <div class='heart suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
+                <div class='spade suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
             </div>
-
             <!-- show the the bids so far by the other players -->
             <div class='bids'>
                 <div>Geboden tot nu toe:</div>
@@ -151,8 +214,8 @@
                         </thead>
                         <tbody>
                             <!-- maximum number of bids equal the number of bids divided by two players i.e. 8) -->
-                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></tdn></tr>
+                            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></tdn><td></td><td></td></tr>
                             <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
                             <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
                         </tbody>
@@ -177,14 +240,80 @@
                 <input type='button' data-suite='3' class='spade suite bid-trump' value='\u2660'>
             </div>
             <div>
-                <table id='trump-suitecards-table'>
-                    <tbody>
-                        <tr class='diamond'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='club'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='heart'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='spade'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                    </tbody>
-                </table>            
+            <div id='trump-suitecards-table'>
+                    <div class='diamond suite-cards'>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                    </div>
+                    <div class='club suite-cards'>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                    </div>
+                    <div class='heart suite-cards'>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                    </div>
+                    <div class='spade suite-cards'>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                        <span class='card-text'></span>
+                    </div>
+                </div>           
             </div>
         </div>
         <div id='page-partner-choosing' class='page'>
@@ -204,15 +333,79 @@
                 <input type='button' data-suite='2' class='heart suite bid-partner' value='\u2665'>
                 <input type='button' data-suite='3' class='spade suite bid-partner' value='\u2660'>
             </div>
-            <div>
-                <table id='partner-suitecards-table'>
-                    <tbody>
-                        <tr class='diamond'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='club'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='heart'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                        <tr class='spade'><td  class='card-text'></td><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td  class='card-text'><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td><td  class='card-text'></td></tr>
-                    </tbody>
-                </table>            
+            <div id='partner-suitecards-table'>
+                <div class='diamond suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
+                <div class='club suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
+                <div class='heart suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
+               <div class='spade suite-cards'>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                    <span class='card-text'></span>
+                </div>
             </div>
         </div>
         <div id='page-play-reporting' class='page'>
@@ -249,71 +442,67 @@
                 <div id='play-suite'></div>
             </div>
             <!-- showing the cards of the current player as buttons-->
-            <div class='card-buttons'>
-                <table id='player-suitecards-table'>
-                    <tbody>
-                        <tr>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='0'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='1'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='2'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='3'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='4'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='5'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='6'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='7'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='8'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='9'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='10'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='11'></td>
-                            <td class='playable card-text diamond' data-suite-id='0' data-suite-index='12'></td>
-                        </tr>
-                        <tr>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='0'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='1'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='2'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='3'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='4'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='5'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='6'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='7'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='8'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='9'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='10'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='11'></td>
-                            <td class='playable card-text club' data-suite-id='1' data-suite-index='12'></td>
-                        </tr>
-                        <tr>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='0'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='1'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='2'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='3'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='4'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='5'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='6'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='7'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='8'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='9'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='10'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='11'></td>
-                            <td class='playable card-text heart' data-suite-id='2' data-suite-index='12'></td>
-                        </tr>
-                        <tr>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='0'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='1'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='2'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='3'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='4'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='5'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='6'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='7'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='8'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='9'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='10'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='11'></td>
-                            <td class='playable card-text spade' data-suite-id='3' data-suite-index='12'></td>
-                        </tr>
-                    </tbody>
-                </table>            
+            <div id='player-suitecards-table'>
+                <div class='diamond suite-cards'>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='0'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='1'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='2'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='3'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='4'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='5'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='6'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='7'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='8'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='9'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='10'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='11'></span>
+                    <span class='playable card-text' data-suite-id='0' data-suite-index='12'></span>
+                </div>
+                <div class='club suite-cards'>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='0'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='1'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='2'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='3'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='4'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='5'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='6'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='7'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='8'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='9'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='10'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='11'></span>
+                    <span class='playable card-text' data-suite-id='1' data-suite-index='12'></span>
+                </div>
+                <div class='heart suite-cards'>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='0'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='1'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='2'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='3'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='4'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='5'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='6'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='7'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='8'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='9'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='10'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='11'></span>
+                    <span class='playable card-text' data-suite-id='2' data-suite-index='12'></span>
+                </div>
+                <div class='spade suite-cards'>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='0'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='1'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='2'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='3'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='4'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='5'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='6'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='7'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='8'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='9'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='10'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='11'></span>
+                    <span class='playable card-text' data-suite-id='3' data-suite-index='12'></span>
+                </div>            
             </div>
             <div class="separator"></div>
             <div class='trick-cards'>
@@ -341,23 +530,23 @@
                 <table class='tricks-played-table'>
                     <thead>
                         <tr>
-                            <th>Slag</th><th>Speler 1</th><th>Speler 2</th><th>Speler 3</th><th>Speler 4</th><th>Gewonnen door</th><th>Aantal slagen</th>
+                            <th>Slag</th><th colspan='2'>Speler 1</th><th colspan='2'>Speler 2</th><th colspan='2'>Speler 3</th><th colspan='2'>Speler 4</th><th>Gewonnen door</th><th>Aantal slagen</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -376,23 +565,23 @@
                 <table class='tricks-played-table'>
                     <thead>
                         <tr>
-                            <th>Slag</th><th>Speler 1</th><th>Speler 2</th><th>Speler 3</th><th>Speler 4</th><th>Gewonnen door</th><th>Aantal slagen</th>
+                            <th>Slag</th><th colspan='2'>Speler 1</th><th colspan='2'>Speler 2</th><th colspan='2'>Speler 3</th><th colspan='2'>Speler 4</th><th>Gewonnen door</th><th>Aantal slagen</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
-                        <tr><td></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td class='card-text'></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td class='card-text'><td></td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td class='card-text'></td><td></td><td></td><td></td></tr>
                     </tbody>
                 </table>
             </div>

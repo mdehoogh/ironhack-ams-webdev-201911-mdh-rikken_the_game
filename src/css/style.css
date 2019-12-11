@@ -53,8 +53,7 @@ body {
 }
 
 input[type=button] {
-    font-size:500%;
-    /* font-size:1.25rem; */
+    font-size:1.25rem;
 }
 
 .pages {
@@ -249,7 +248,7 @@ td, th {
 }
 
 /* Style the collapsible content. Note: hidden by default */
-#bidder-suitecards {
+#bidder-suitecards-table {
   padding: 0 18px;
   /* display: none; */
   overflow: hidden;

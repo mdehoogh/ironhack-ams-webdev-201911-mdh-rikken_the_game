@@ -35,7 +35,7 @@ function initializeBidderSuitecardsButton(){
     button.addEventListener("click",function(){
         // console.log("Bidder suitecards button clicked!");
         this.classList.toggle("active-bid-button"); // a ha, didn't know this
-        document.getElementById("bidder-suitecards").style.display=(this.classList.contains("active-bid-button")?"block":"none");
+        document.getElementById("bidder-suitecards-table").style.display=(this.classList.contains("active-bid-button")?"block":"none");
     });
 }
 /* replacing:
@@ -209,7 +209,7 @@ function updateSuiteCardRows(rows,suiteCards){
         /////////let suiteColor=SUITE_COLORS[suite%2];
         let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
         // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
-        let cells=row.querySelectorAll("td");
+        let cells=row.querySelectorAll("span");
         let suiteCard=0;
         // console.log("Number of columns: ",columns.length);
         for(let cell of cells){
@@ -228,13 +228,13 @@ function updateSuiteCardRows(rows,suiteCards){
 // in three different pages the player cards should be shown...
 function updateBidderSuiteCards(suiteCards){
     console.log("Showing the (current player) cards for bidding.");
-    updateSuiteCardRows(document.getElementById("bidder-suitecards-table").querySelector("tbody").querySelectorAll("tr"),suiteCards);
+    updateSuiteCardRows(document.getElementById("bidder-suitecards-table").querySelectorAll("div"),suiteCards);
 }
 function updateChooseTrumpSuiteCards(suiteCards){
-    updateSuiteCardRows(document.getElementById("trump-suitecards-table").querySelector("tbody").querySelectorAll("tr"),suiteCards);
+    updateSuiteCardRows(document.getElementById("trump-suitecards-table").querySelectorAll("div"),suiteCards);
 }
 function updateChoosePartnerSuiteCards(suiteCards){
-    updateSuiteCardRows(document.getElementById("partner-suitecards-table").querySelector("tbody").querySelectorAll("tr"),suiteCards);
+    updateSuiteCardRows(document.getElementById("partner-suitecards-table").querySelectorAll("div"),suiteCards);
 }
 
 /**
@@ -243,16 +243,16 @@ function updateChoosePartnerSuiteCards(suiteCards){
  */
 function updatePlayerSuiteCards(suiteCards){
     console.log("Showing the (current player) cards to choose from.");
-    let tablebody=document.getElementById("player-suitecards-table").querySelector("tbody");
+    let tablebody=document.getElementById("player-suitecards-table");
     console.log("Suite cards: ",suiteCards);
-    let rows=tablebody.querySelectorAll("tr");
+    let rows=tablebody.querySelectorAll("div");
     console.log("Number of rows: ",rows.length);
     for(let suite=0;suite<rows.length;suite++){
         let row=rows[suite];
         /////////let suiteColor=SUITE_COLORS[suite%2];
         let cardsInSuite=(suite<suiteCards.length?suiteCards[suite]:[]);
         // console.log("Number of cards in suite #"+suite+": "+cardsInSuite.length);
-        let columns=row.querySelectorAll("td");
+        let columns=row.querySelectorAll("span");
         // console.log("Number of columns: ",columns.length);
         for(let suiteCard=0;suiteCard<columns.length;suiteCard++){
             let cellbutton=columns[suiteCard]/*.querySelector("input[type=button]")*/;
@@ -272,7 +272,7 @@ function updatePlayerSuiteCards(suiteCards){
 
 function clearTricksPlayedTables(){
     for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table"))
-        for(let tricksPlayedTableCell of tricksPlayedTable.querySelector("tbody").querySelectorAll('td'))
+        for(let tricksPlayedTableCell of tricksPlayedTable.querySelectorAll('span'))
             tricksPlayedTableCell.innerHTML="";
 }
 function updateTricksPlayedTables(){
@@ -280,20 +280,21 @@ function updateTricksPlayedTables(){
     if(lastTrickPlayedIndex>=0){
         let trick=rikkenTheGame.getTrickAtIndex(lastTrickPlayedIndex);
         for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table")){
-            let tricksPlayedTablebody=tricksPlayedTable.querySelector("tbody");
-            let row=tricksPlayedTablebody.children[lastTrickPlayedIndex]; // the row we're interested in filling
+            let row=tricksPlayedTable.querySelector("tbody").children[lastTrickPlayedIndex]; // the row we're interested in filling
             row.children[0].innerHTML=String(rikkenTheGame.numberOfTricksPlayed);
             for(trickPlayer=0;trickPlayer<trick._cards.length;trickPlayer++){
                 let player=(trickPlayer+trick.firstPlayer)%4;
-                let cell=row.children[player+1]; // use player to get the 'real' player column!!
+                let cell=row.children[2*player+1]; // use player to get the 'real' player column!!
                 let card=trick._cards[trickPlayer];
-                cell.innerHTML=(trickPlayer==0?"|":"")+card.getTextRepresentation(); // put | in front of first player!!!
-                if(trick.winner===player)cell.innerHTML+="*"; // mark the winner with an asterisk!!
+                cell.innerHTML=card.getTextRepresentation(); // put | in front of first player!!!
+                // make the background black after the last player, so we know where the trick ended!!
+                row.children[2*player+2].style.backgroundColor=(trickPlayer==trick._cards.length-1?'black':'white');
+                if(trick.winner===player)cell.style.color=(card.suite%2?'blue':'#b19cd9');else // mark the winner with an asterisk!!
                 cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
                 // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
             }
-            row.children[5].innerHTML=rikkenTheGame.getTeamName(trick.winner); // show who won the trick!!
-            row.children[6].innerHTML=rikkenTheGame.getPlayerAtIndex(trick.winner).getNumberOfTricksWon(); // show who won the trick!!
+            row.children[9].innerHTML=rikkenTheGame.getTeamName(trick.winner); // show who won the trick!!
+            row.children[10].innerHTML=rikkenTheGame.getPlayerAtIndex(trick.winner).getNumberOfTricksWon(); // show who won the trick!!
         }
     }
 }
@@ -406,7 +407,7 @@ class OnlinePlayer extends Player{
         document.getElementById("toggle-bidder-cards").value=this.getTextRepresentation("<br>");
         */
         // either show or hide the bidder cards immediately
-        document.getElementById("bidder-suitecards").style.display=(playmode==PLAYMODE_DEMO?"block":"none");
+        document.getElementById("bidder-suitecards-table").style.display=(playmode==PLAYMODE_DEMO?"block":"none");
         if(playmode==PLAYMODE_DEMO^document.getElementById("bidder-suitecards-button").classList.contains("active-bid-button"))
             document.getElementById("bidder-suitecards-button").classList.toggle("active-bid-button");
         // NOTE because every player gets a turn to bid, this._suiteCards will be available when we ask for trump/partner!!!
