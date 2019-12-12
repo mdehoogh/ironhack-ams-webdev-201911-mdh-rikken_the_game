@@ -181,14 +181,14 @@ td, th {
 }
 .diamond,.heart{
     color:red;
-    font-size:1.2rem;
+    /* font-size:1.2rem; */
 }
 .trump .club,.spade {
     color:blue;
 }
 .club,.spade {
     color:black;
-    font-size:1.4rem;
+    /* font-size:1.4rem; */
 }
 
 .card-text{
