@@ -463,134 +463,138 @@ class RikkenTheGame extends PlayerGame{
     set state(newstate){
         let oldstate=this._state;
         this._state=newstate;
-        // allow preparations by the state change event listener
-        if(this._eventListener)this._eventListener.stateChanged(oldstate,this._state);
-         // if there's a state change listener, play 'online', otherwise play through the console
-        switch(this._state){
-            case IDLE:
-                // if failing to initialize the game I'm out of order!!!
-                if(!this._gameInitialized())this.state=OUT_OF_ORDER;
-                break;
-            case DEALING:
-                // let's tell the players that a new game is starting
-                this._players.forEach((player)=>{player.newGame();});
-                this.deckOfCards.shuffle(this._shuffleCount,this._topopMinimum,this._topopMaximum); // shuffle the cards again
-                if(this.dealCards())this._startTheGame();else console.error("Failed to deal the cards.");
-                break;
-            case BIDDING:
-                {
-                    this._player=(this.dealer+1)%this.numberOfPlayers;
-                    console.log("The first player to bid: ",this._player);
-                    this._highestBid=0;
-                    this._highestBidPlayers=[]; // no highest bid players yet
-                    this._players[this._player].makeABid(this._getPlayerBidsObjects(),this._getPossibleBids());
-                }
-                break;
-            case PLAYING:
-                {
-                    this._setNumberOfTricksToWin();
-                    // it's always possible to ask for the partner card blind, when there's trump!!!
-                    // unless the partner card has already been played, or when the 'rikker' still has trumps!!!!
-                    // if there's a partner suite (and rank) we have to check whether or not it was played or not
-                    ////////this._partnerCardPlayedStatus=(this._partnerSuite>=0?0:-1); // keep track of whether the partner card was played
-                    console.log("Let the games begin!");
-                    this._trick=new Trick(this._player,this.getTrumpSuite(),this.getPartnerSuite(),this.getPartnerRank(),this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
-                    this._players[this._player].playACard(this._trick);
-                }
-                break;
-            case CANCELING:
-                // this is a pre-state of FINISHED where not all the player cards are in the tricks
-                // reposses the cards from the players
-                this._players.forEach((player)=>{while(1){let card=player.getFirstCard();if(!card)break;card.holder=this.deckOfCards;}});
-                console.log("Number of cards repossessed from the players: "+this.deckOfCards.numberOfCards+".");
-                this.state=FINISHED; // to get the event listener informed as well (before tricks are cleared!)
-                break;
-            case FINISHED:
-                if(this._tricks.length==13){
-                    // determine the points won and adjust the points
-                    let pointsWon=0;
-                    let pointsToWinOffset=BID_POINTS[this._highestBid];
-                    let tricksToWin=(this._highestBidPlayers.length>0?this._players[this._highestBidPlayers[0]].numberOfTricksToWin:0);
-                    // we're going to compute the delta points i.e. what each player will win (or loose)
-                    this._deltaPoints=[0,0,0,0];
-                    let aSolitaryGame=true;
-                    switch(this._highestBid){
-                        case BID_TROELA:case BID_RIK:case BID_RIK_BETER: // single highest bidder
-                            aSolitaryGame=false; // not played alone
-                        case BID_NEGEN_ALLEEN:case BID_NEGEN_ALLEEN_BETER:
-                        case BID_TIEN_ALLEEN:case BID_TIEN_ALLEEN_BETER:
-                        case BID_ELF_ALLEEN:case BID_ELF_ALLEEN_BETER:
-                        case BID_TWAALF_ALLEEN:case BID_TWAALF_ALLEEN_BETER:
-                        case BID_DERTIEN_ALLEEN:case BID_DERTIEN_ALLEEN_BETER:
-                            let numberOfTricksWonByHighestBidder=this._players[this._highestBidPlayers[0]].getNumberOfTricksWon();
-                            pointsWon=(numberOfTricksWonByHighestBidder>=tricksToWin?pointsToWinOffset+numberOfTricksWonByHighestBidder-tricksToWin:numberOfTricksWonByHighestBidder-tricksToWin-pointsToWinOffset);
-                            if(aSolitaryGame){
-                                for(let player=0;player<4;player++)
-                                    if(player==this._highestBidPlayers[0])
-                                        this._deltaPoints[player]+=(3*pointsWon);
-                                    else
-                                        this._deltaPoints[player]-=pointsWon;
-                            }else{ // played with partner, so the highest bidder and the partner get pointsWon and the others give pointsWon
-                                for(let player=0;player<4;player++)
-                                    if(player==this._highestBidPlayers[0]||player==this._players[this._highestBidPlayers[0]].partner)
-                                        this._deltaPoints[player]+=pointsWon;
-                                    else
-                                        this._deltaPoints[player]-=pointsWon;
-                            }
-                            break;
-                        case BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW:
-                            // the last trick winner has to pay the other players
-                            let lastTrickWinner=this._tricks[12].winner;
-                            for(let player=0;player<4;player++)
-                                if(player==lastTrickWinner)
-                                    this._deltaPoints[player]-=(3*pointsToWinOffset);
-                                else
-                                    this._deltaPoints[player]+=pointsToWinOffset;
-                            // the winner of the 'schoppen vrouw' trick also has to pay the other players
-                            let schoppenVrouwWinner=-1;
-                            for(let trick=0;trick<12;trick++){
-                                if(this._tricks[trick].containsCard(SUITE_SPADE,RANK_QUEEN)){
-                                    schoppenVrouwWinner=this._tricks[trick].winner;
-                                    break;
-                                }
-                            }
-                            for(let player=0;player<4;player++)
-                                if(player==schoppenVrouwWinner)
-                                    this._deltaPoints[player]-=(3*pointsToWinOffset);
-                                else
-                                    this._deltaPoints[player]+=pointsToWinOffset;
-                            break;
-                        // the rest of the games (without trump) can be played by multiple players at the same time
-                        // with points won by any of the highest bid players
-                        case BID_PICO:
-                            for(let highestBidPlayer=0;highestBidPlayer<this._highestBidPlayers.length;highestBidPlayer++){
-                                let deltaWon=Math.abs(this._players[this._highestBidPlayers[highestBidPlayer]].getNumberOfTricksWon()-1);
-                                pointsWon=(deltaWon?1-pointsToWinOffset-deltaWon:pointsToWinOffset);
-                                for(let player=0;player<4;player++)
-                                    if(player==this._highestBidPlayers[this.highestBidPlayer])
-                                        this._deltaPoints[player]+=(3*pointWon);
-                                    else
-                                        this._deltaPoints[player]-=pointsWon;
-                            }
-                            break;
-                        case BID_MISERE:case BID_OPEN_MISERE:case BID_OPEN_MISERE_MET_EEN_PRAATJE:
-                            for(let highestBidPlayer=0;highestBidPlayer<this._highestBidPlayers.length;highestBidPlayer++){
-                                // every trick one is one too many
-                                let deltaWon=this._players[this._highestBidPlayers[highestBidPlayer]].getNumberOfTricksWon();
-                                pointsWon=(deltaWon?1-pointsToWinOffset-deltaWon:pointsToWinOffset);
-                                for(let player=0;player<4;player++)
-                                    if(player==this._highestBidPlayers[this.highestBidPlayer])
-                                        this._deltaPoints[player]+=(3*pointsWon);
-                                    else
-                                        this._deltaPoints[player]-=pointsWon;
-                            }
-                            break;
+        // respond to the change of state BUT always call the event listener no matter what goes wrong along the way
+        try{
+            // if there's a state change listener, play 'online', otherwise play through the console
+            switch(this._state){
+                case IDLE:
+                    // if failing to initialize the game I'm out of order!!!
+                    if(!this._gameInitialized())this.state=OUT_OF_ORDER;
+                    break;
+                case DEALING:
+                    // let's tell the players that a new game is starting
+                    this._players.forEach((player)=>{player.newGame();});
+                    this.deckOfCards.shuffle(this._shuffleCount,this._topopMinimum,this._topopMaximum); // shuffle the cards again
+                    if(this.dealCards())this._startTheGame();else console.error("Failed to deal the cards.");
+                    break;
+                case BIDDING:
+                    {
+                        this._player=(this.dealer+1)%this.numberOfPlayers;
+                        console.log("The first player to bid: ",this._player);
+                        this._highestBid=0;
+                        this._highestBidPlayers=[]; // no highest bid players yet
+                        this._players[this._player].makeABid(this._getPlayerBidsObjects(),this._getPossibleBids());
                     }
-                    for(let player=0;player<4;player++)
-                        this._points[player]+=this._deltaPoints[player];
-                }else // incomplete game so ascertain to have no delta points
-                    this._deltaPoints=null;
-                break;
+                    break;
+                case PLAYING:
+                    {
+                        this._setNumberOfTricksToWin();
+                        // it's always possible to ask for the partner card blind, when there's trump!!!
+                        // unless the partner card has already been played, or when the 'rikker' still has trumps!!!!
+                        // if there's a partner suite (and rank) we have to check whether or not it was played or not
+                        ////////this._partnerCardPlayedStatus=(this._partnerSuite>=0?0:-1); // keep track of whether the partner card was played
+                        console.log("Let the games begin!");
+                        this._trick=new Trick(this._player,this.getTrumpSuite(),this.getPartnerSuite(),this.getPartnerRank(),this._canAskForPartnerCard()); // replacing: this._trumpSuite,this._partnerSuite,this._partnerRank,this._getTrumpPlayer()); // replacing: this._canAskForPartnerCardBlind());
+                        this._players[this._player].playACard(this._trick);
+                    }
+                    break;
+                case CANCELING:
+                    // this is a pre-state of FINISHED where not all the player cards are in the tricks
+                    // reposses the cards from the players
+                    this._players.forEach((player)=>{while(1){let card=player.getFirstCard();if(!card)break;card.holder=this.deckOfCards;}});
+                    console.log("Number of cards repossessed from the players: "+this.deckOfCards.numberOfCards+".");
+                    this.state=FINISHED; // to get the event listener informed as well (before tricks are cleared!)
+                    break;
+                case FINISHED:
+                    if(this._tricks.length==13){
+                        // determine the points won and adjust the points
+                        let pointsWon=0;
+                        let pointsToWinOffset=BID_POINTS[this._highestBid];
+                        let tricksToWin=(this._highestBidPlayers.length>0?this._players[this._highestBidPlayers[0]].numberOfTricksToWin:0);
+                        // we're going to compute the delta points i.e. what each player will win (or loose)
+                        this._deltaPoints=[0,0,0,0];
+                        let aSolitaryGame=true;
+                        switch(this._highestBid){
+                            case BID_TROELA:case BID_RIK:case BID_RIK_BETER: // single highest bidder
+                                aSolitaryGame=false; // not played alone
+                            case BID_NEGEN_ALLEEN:case BID_NEGEN_ALLEEN_BETER:
+                            case BID_TIEN_ALLEEN:case BID_TIEN_ALLEEN_BETER:
+                            case BID_ELF_ALLEEN:case BID_ELF_ALLEEN_BETER:
+                            case BID_TWAALF_ALLEEN:case BID_TWAALF_ALLEEN_BETER:
+                            case BID_DERTIEN_ALLEEN:case BID_DERTIEN_ALLEEN_BETER:
+                                let numberOfTricksWonByHighestBidder=this._players[this._highestBidPlayers[0]].getNumberOfTricksWon();
+                                pointsWon=(numberOfTricksWonByHighestBidder>=tricksToWin?pointsToWinOffset+numberOfTricksWonByHighestBidder-tricksToWin:numberOfTricksWonByHighestBidder-tricksToWin-pointsToWinOffset);
+                                if(aSolitaryGame){
+                                    for(let player=0;player<4;player++)
+                                        if(player==this._highestBidPlayers[0])
+                                            this._deltaPoints[player]+=(3*pointsWon);
+                                        else
+                                            this._deltaPoints[player]-=pointsWon;
+                                }else{ // played with partner, so the highest bidder and the partner get pointsWon and the others give pointsWon
+                                    for(let player=0;player<4;player++)
+                                        if(player==this._highestBidPlayers[0]||player==this._players[this._highestBidPlayers[0]].partner)
+                                            this._deltaPoints[player]+=pointsWon;
+                                        else
+                                            this._deltaPoints[player]-=pointsWon;
+                                }
+                                break;
+                            case BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW:
+                                // the last trick winner has to pay the other players
+                                let lastTrickWinner=this._tricks[12].winner;
+                                for(let player=0;player<4;player++)
+                                    if(player==lastTrickWinner)
+                                        this._deltaPoints[player]-=(3*pointsToWinOffset);
+                                    else
+                                        this._deltaPoints[player]+=pointsToWinOffset;
+                                // the winner of the 'schoppen vrouw' trick also has to pay the other players
+                                let schoppenVrouwWinner=-1;
+                                for(let trick=0;trick<12;trick++){
+                                    if(this._tricks[trick].containsCard(SUITE_SPADE,RANK_QUEEN)){
+                                        schoppenVrouwWinner=this._tricks[trick].winner;
+                                        break;
+                                    }
+                                }
+                                for(let player=0;player<4;player++)
+                                    if(player==schoppenVrouwWinner)
+                                        this._deltaPoints[player]-=(3*pointsToWinOffset);
+                                    else
+                                        this._deltaPoints[player]+=pointsToWinOffset;
+                                break;
+                            // the rest of the games (without trump) can be played by multiple players at the same time
+                            // with points won by any of the highest bid players
+                            case BID_PICO:
+                                for(let highestBidPlayer=0;highestBidPlayer<this._highestBidPlayers.length;highestBidPlayer++){
+                                    let deltaWon=Math.abs(this._players[this._highestBidPlayers[highestBidPlayer]].getNumberOfTricksWon()-1);
+                                    pointsWon=(deltaWon?1-pointsToWinOffset-deltaWon:pointsToWinOffset);
+                                    for(let player=0;player<4;player++)
+                                        if(player==this._highestBidPlayers[this.highestBidPlayer])
+                                            this._deltaPoints[player]+=(3*pointWon);
+                                        else
+                                            this._deltaPoints[player]-=pointsWon;
+                                }
+                                break;
+                            case BID_MISERE:case BID_OPEN_MISERE:case BID_OPEN_MISERE_MET_EEN_PRAATJE:
+                                for(let highestBidPlayer=0;highestBidPlayer<this._highestBidPlayers.length;highestBidPlayer++){
+                                    // every trick one is one too many
+                                    let deltaWon=this._players[this._highestBidPlayers[highestBidPlayer]].getNumberOfTricksWon();
+                                    pointsWon=(deltaWon?1-pointsToWinOffset-deltaWon:pointsToWinOffset);
+                                    for(let player=0;player<4;player++)
+                                        if(player==this._highestBidPlayers[this.highestBidPlayer])
+                                            this._deltaPoints[player]+=(3*pointsWon);
+                                        else
+                                            this._deltaPoints[player]-=pointsWon;
+                                }
+                                break;
+                        }
+                        for(let player=0;player<4;player++)
+                            this._points[player]+=this._deltaPoints[player];
+                    }else // incomplete game so ascertain to have no delta points
+                        this._deltaPoints=null;
+                    break;
+            }
+
+        }finally{
+            if(this._eventListener)this._eventListener.stateChanged(oldstate,this._state);
         }
    }
 
