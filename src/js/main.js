@@ -4,6 +4,7 @@ const DUTCH_SUITE_NAMES=["ruiten","klaveren","harten","schoppen"];
 
 var infoElement=document.getElementById('info');
 function setInfo(info){
+    if(!info)return;
     console.log("Rikken - het spel >>> info: "+info);
     if(infoElement)infoElement.innerHTML=info;
 }
@@ -270,10 +271,25 @@ function updatePlayerSuiteCards(suiteCards){
     console.log("Current player cards to choose from shown!");
 }
 
+function updatePlayerResultsTable(){
+    let player=0;
+    let deltaPoints=rikkenTheGame.deltaPoints;
+    let points=rikkenTheGame.points;
+    for(let playerResultsRow of document.getElementById("player-results-table").querySelector("tbody").getElementsByTagName("tr")){
+        playerResultsRow.children[0].innerHTML=rikkenTheGame.getPlayerName(player);
+        playerResultsRow.children[1].innerHTML=(deltaPoints?String(rikkenTheGame.getNumberOfTricksWonByPlayer(player)):"-");
+        playerResultsRow.children[2].innerHTML=(deltaPoints?String(deltaPoints[player]):"-");
+        playerResultsRow.children[3].innerHTML=String(points[player]);
+        player++;
+    }
+}
+
 function clearTricksPlayedTables(){
-    for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table"))
-        for(let tricksPlayedTableCell of tricksPlayedTable.querySelectorAll('span'))
-            tricksPlayedTableCell.innerHTML="";
+    for(let tricksPlayedTable of document.getElementsByClassName("tricks-played-table")){
+        for(let tricksPlayedTableCell of tricksPlayedTable.querySelectorAll('td')){
+            tricksPlayedTableCell.innerHTML="";tricksPlayedTableCell.style.backgroundColor='transparent';
+        }
+    }
 }
 function updateTricksPlayedTables(){
     let lastTrickPlayedIndex=rikkenTheGame.numberOfTricksPlayed-1;
@@ -287,10 +303,15 @@ function updateTricksPlayedTables(){
                 let cell=row.children[2*player+1]; // use player to get the 'real' player column!!
                 let card=trick._cards[trickPlayer];
                 cell.innerHTML=card.getTextRepresentation(); // put | in front of first player!!!
-                // make the background black after the last player, so we know where the trick ended!!
-                row.children[2*player+2].style.backgroundColor=(trickPlayer==trick._cards.length-1?'black':'white');
+                // make the background the color of the play suite after the last player, so we know where the trick ended!!
+                row.children[2*player+2].style.backgroundColor=(trickPlayer==trick._cards.length-1?(trick.playSuite%2?'black':'red'):'white');
+                // let's make the winner card show bigger!!!
+                ///////if(trick.winner===player)cell.style.color=(card.suite%2?'blue':'#b19cd9');else // mark the winner with an asterisk!!
+                /* replacing:
                 if(trick.winner===player)cell.style.color=(card.suite%2?'blue':'#b19cd9');else // mark the winner with an asterisk!!
-                cell.style.color=(card.suite%2?'black':'red'); // first player adds blue!!
+                */
+                cell.style.color=(card.suite%2?'black':'red');
+                cell.style.fontSize=(trick.winner===player?"600":"450")+"%";
                 // replacing: cell.style.color='#'+(card.suite%2?'FF':'00')+'00'+(trickPlayer==0?'FF':'00'); // first player adds blue!!
             }
             row.children[9].innerHTML=rikkenTheGame.getTeamName(trick.winner); // show who won the trick!!
@@ -430,17 +451,20 @@ class OnlinePlayer extends Player{
         }
     }
     chooseTrumpSuite(suites){
+        console.log("Possible trump suites:",suites);
         setPage("page-trump-choosing");
         updateChooseTrumpSuiteCards(this._suiteCards);
         // iterate over the trump suite buttons
-        for(let suiteButton of document.querySelectorAll(".suite.trump"))
-            suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
+        for(let suiteButton of document.getElementById("trump-suite-buttons").getElementsByClassName("suite"))
+            suiteButton.style.display=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"none":"inline");
     }
-    choosePartnerSuite(partnerRankName){
+    choosePartnerSuite(suites,partnerRankName){
+        console.log("Possible partner suites:",suites);
         setPage("page-partner-choosing");
         updateChoosePartnerSuiteCards(this._suiteCards);
-        for(let suiteButton of document.querySelectorAll("suite.partner"))
-            suiteButton.style.visibility=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"hidden":"visible");
+        // because the suites in the button array are 0, 1, 2, 3 and suites will contain
+        for(let suiteButton of document.getElementById("partner-suite-buttons").getElementsByClassName("suite"))
+            suiteButton.style.display=(suites.indexOf(parseInt(suiteButton.getAttribute('data-suite')))<0?"none":"inline");
         document.getElementById('partner-rank').innerHTML=partnerRankName;
     }
     // almost the same as the replaced version except we now want to receive the trick itself
@@ -673,11 +697,13 @@ class OnlineRikkenTheGameEventListener extends RikkenTheGameEventListener{
                 ////// let's wait until a bid is requested!!!! setPage("page-bidding");
                 break;
             case PLAYING:
+                clearTricksPlayedTables();
                 // initiate-playing will report on the game that is to be played!!!
                 setPage("page-playing");
                 break;
             case FINISHED:
                 updateTricksPlayedTables(); // so we get to see the last trick as well!!!
+                updatePlayerResultsTable(); // show the player results so far
                 setPage("page-finished");
                 break;
         }

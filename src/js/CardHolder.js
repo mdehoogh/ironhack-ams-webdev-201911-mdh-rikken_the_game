@@ -86,7 +86,16 @@ class CardHolder{
         return suites;
     }
     /**
-     * returns the ids of the suites present of which the player does not have the aces
+     * returning an array with all suites, with -1 where a suite is not present in the current cards 
+     * @param {*} rank 
+     */
+    getSuitesWithoutRank(rank){
+        let suites=[0,1,2,3];
+        this._cards.forEach((card)=>{if(card.rank===rank)suites[card.suite]=-1;});
+        return suites;
+    }
+    /**
+     * returns the ids of the suites present of which the player does not have the the given rank
      */
     getRanklessSuites(rank){
         let ranklessSuites=[];

@@ -13,6 +13,9 @@ const BIDS_ALL_CAN_PLAY=[BID_PICO,BID_OPEN_MISERE,BID_OPEN_MISERE_MET_EEN_PRAATJ
 const BIDS_WITH_PARTNER_IN_HEARTS=[BID_RIK_BETER,BID_TIEN_ALLEEN_BETER,BID_ELF_ALLEEN_BETER,BID_TWAALF_ALLEEN_BETER,BID_DERTIEN_ALLEEN_BETER]; // games with trump played with a partner
 const BID_RANKS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0,-1]; // how I played it (bid pass excluded (always rank 0))
 
+// each bid has a certain amount of points to receive when winning the game
+const BID_POINTS=[0,1,1,2,2,4,3,3,4,4,5,5,5,6,10,2,2];
+
 /**
  * to be registered as event listener with a single RikkenTheGame instance (in the constructor)
  */
@@ -38,6 +41,20 @@ class EmulatedPlayer extends Player{
         // we should return the card we want to get rid of most!!!
         return this.cards.pop(); // the last card is a good alternative!!!
     }
+
+    makeABid(playerbids){
+
+    }
+    chooseTrumpSuite(suites){
+
+    }
+    choosePartnerSuite(suites){
+
+    }
+    playACard(){
+
+    }
+
 }
 
 class Trick extends CardHolder{
@@ -189,6 +206,8 @@ class RikkenTheGame extends PlayerGame{
         if(!players||!Array.isArray(players)||players.length<4)
             throw new Error("Not enough players!");
         
+        this._points=[]; // the points each player has won
+        this._deltaPoints=[]; // what is won/lost in a single game
         this._players=[]; // to store the players myself
         // replace undefined players by emulated players and register myself as player event listener
         let player=players.length;
@@ -199,6 +218,7 @@ class RikkenTheGame extends PlayerGame{
                 this._players.unshift(players[player]);
             }else
                 this._players.unshift(new EmulatedPlayer(RikkenTheGame.MY_NAME));
+            this._points.unshift(0); // start with zero points
         }
         // register the game with each of the players and initialie the player bids as well
         ////this._passBidCount=0; // the number of players that bid 'pass'
@@ -415,7 +435,7 @@ class RikkenTheGame extends PlayerGame{
                         case BID_MISERE:case BID_OPEN_MISERE:case BID_OPEN_MISERE_MET_EEN_PRAATJE: // zero trick game
                             player.setNumberOfTricksToWin(0);
                             break;
-                        case PICO: // one trick game
+                        case BID_PICO: // one trick game
                             player.setNumberOfTricksToWin(1);
                             break;                           
                         case BID_NEGEN_ALLEEN:case BID_NEGEN_ALLEEN_BETER: // nine trick gam
@@ -486,9 +506,99 @@ class RikkenTheGame extends PlayerGame{
                 this.state=FINISHED; // to get the event listener informed as well (before tricks are cleared!)
                 break;
             case FINISHED:
+                if(this._tricks.length==13){
+                    // determine the points won and adjust the points
+                    let pointsWon=0;
+                    let pointsToWinOffset=BID_POINTS[this._highestBid];
+                    let tricksToWin=(this._highestBidPlayers.length>0?this._players[this._highestBidPlayers[0]].numberOfTricksToWin:0);
+                    // we're going to compute the delta points i.e. what each player will win (or loose)
+                    this._deltaPoints=[0,0,0,0];
+                    let aSolitaryGame=true;
+                    switch(this._highestBid){
+                        case BID_TROELA:case BID_RIK:case BID_RIK_BETER: // single highest bidder
+                            aSolitaryGame=false; // not played alone
+                        case BID_NEGEN_ALLEEN:case BID_NEGEN_ALLEEN_BETER:
+                        case BID_TIEN_ALLEEN:case BID_TIEN_ALLEEN_BETER:
+                        case BID_ELF_ALLEEN:case BID_ELF_ALLEEN_BETER:
+                        case BID_TWAALF_ALLEEN:case BID_TWAALF_ALLEEN_BETER:
+                        case BID_DERTIEN_ALLEEN:case BID_DERTIEN_ALLEEN_BETER:
+                            let numberOfTricksWonByHighestBidder=this._players[this._highestBidPlayers[0]].getNumberOfTricksWon();
+                            pointsWon=(numberOfTricksWonByHighestBidder>=tricksToWin?pointsToWinOffset+numberOfTricksWonByHighestBidder-tricksToWin:numberOfTricksWonByHighestBidder-tricksToWin-pointsToWinOffset);
+                            if(aSolitaryGame){
+                                for(let player=0;player<4;player++)
+                                    if(player==this._highestBidPlayers[0])
+                                        this._deltaPoints[player]+=(3*pointsWon);
+                                    else
+                                        this._deltaPoints[player]-=pointsWon;
+                            }else{ // played with partner, so the highest bidder and the partner get pointsWon and the others give pointsWon
+                                for(let player=0;player<4;player++)
+                                    if(player==this._highestBidPlayers[0]||player==this._players[this._highestBidPlayers[0]].partner)
+                                        this._deltaPoints[player]+=pointsWon;
+                                    else
+                                        this._deltaPoints[player]-=pointsWon;
+                            }
+                            break;
+                        case BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW:
+                            // the last trick winner has to pay the other players
+                            let lastTrickWinner=this._tricks[12].winner;
+                            for(let player=0;player<4;player++)
+                                if(player==lastTrickWinner)
+                                    this._deltaPoints[player]-=(3*pointsToWinOffset);
+                                else
+                                    this._deltaPoints[player]+=pointsToWinOffset;
+                            // the winner of the 'schoppen vrouw' trick also has to pay the other players
+                            let schoppenVrouwWinner=-1;
+                            for(let trick=0;trick<12;trick++){
+                                if(this._tricks[trick].containsCard(SUITE_SPADE,RANK_QUEEN)){
+                                    schoppenVrouwWinner=this._tricks[trick].winner;
+                                    break;
+                                }
+                            }
+                            for(let player=0;player<4;player++)
+                                if(player==schoppenVrouwWinner)
+                                    this._deltaPoints[player]-=(3*pointsToWinOffset);
+                                else
+                                    this._deltaPoints[player]+=pointsToWinOffset;
+                            break;
+                        // the rest of the games (without trump) can be played by multiple players at the same time
+                        // with points won by any of the highest bid players
+                        case BID_PICO:
+                            for(let highestBidPlayer=0;highestBidPlayer<this._highestBidPlayers.length;highestBidPlayer++){
+                                let deltaWon=Math.abs(this._players[this._highestBidPlayers[highestBidPlayer]].getNumberOfTricksWon()-1);
+                                pointsWon=(deltaWon?1-pointsToWinOffset-deltaWon:pointsToWinOffset);
+                                for(let player=0;player<4;player++)
+                                    if(player==this._highestBidPlayers[this.highestBidPlayer])
+                                        this._deltaPoints[player]+=(3*pointWon);
+                                    else
+                                        this._deltaPoints[player]-=pointsWon;
+                            }
+                            break;
+                        case BID_MISERE:case BID_OPEN_MISERE:case BID_OPEN_MISERE_MET_EEN_PRAATJE:
+                            for(let highestBidPlayer=0;highestBidPlayer<this._highestBidPlayers.length;highestBidPlayer++){
+                                // every trick one is one too many
+                                let deltaWon=this._players[this._highestBidPlayers[highestBidPlayer]].getNumberOfTricksWon();
+                                pointsWon=(deltaWon?1-pointsToWinOffset-deltaWon:pointsToWinOffset);
+                                for(let player=0;player<4;player++)
+                                    if(player==this._highestBidPlayers[this.highestBidPlayer])
+                                        this._deltaPoints[player]+=(3*pointsWon);
+                                    else
+                                        this._deltaPoints[player]-=pointsWon;
+                            }
+                            break;
+                    }
+                    for(let player=0;player<4;player++)
+                        this._points[player]+=this._deltaPoints[player];
+                }else // incomplete game so ascertain to have no delta points
+                    this._deltaPoints=null;
                 break;
         }
    }
+
+   // expose the current points each player has
+   get points(){return this._points.slice(0);} // returns a copy of the current set of points
+
+   // and the results of the points won/lost in the last game (if any)
+   get deltaPoints(){return(this._deltaPoints?this._deltaPoints.slice(0):null);}
 
    /**
     * starts playing with player to start playing
@@ -538,7 +648,9 @@ class RikkenTheGame extends PlayerGame{
         if(this._highestBid==BID_RIK||this._highestBid==BID_RIK_BETER){ // yes, a regular 'rik'
             this._partnerRank=this._getPartnerRank();
             console.log(">>> Partner card rank: "+RANK_NAMES[this._partnerRank]+".");
-            this._players[this._player].choosePartnerSuite(DUTCH_RANK_NAMES[this._partnerRank]); // passing along the rank of the card the user can choose
+            let ranklessSuites=this._players[this._player].getSuitesWithoutRank(this._partnerRank);
+            ranklessSuites[this.getTrumpSuite()]=-1; // can't choose trump!!
+            this._players[this._player].choosePartnerSuite(ranklessSuites,DUTCH_RANK_NAMES[this._partnerRank]); // passing along the rank of the card the user can choose
         }else // a solitary play, so we can start playing immediately
             this._startPlaying((this.dealer+1)%this.numberOfPlayers);
     }

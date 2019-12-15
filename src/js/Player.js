@@ -299,7 +299,8 @@ class Player extends CardHolder{
     }
 
     setNumberOfTricksToWin(numberOfTricksToWin){this._numberOfTricksToWin=numberOfTricksToWin;}
-
+    get numberOfTricksToWin(){return this._numberOfTricksToWin;}
+    
     // every player can be checked whether friend (1) or foo (-1) or unknown (0)
     isFriendly(player){
         if(player===this._index)return 2; // I'm mucho friendly to myself
