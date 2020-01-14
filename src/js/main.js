@@ -27,7 +27,7 @@ const PLAYMODE_SERIOUS=0,PLAYMODE_DEMO=1;
 var playmode=1;
 
 // demo mode we use predefined player names
-var DEFAULT_PLAYERS=[["","","","",""],["Marc","Jurgen","Monika","Anna",""]];
+var DEFAULT_PLAYERS=[["","","","",""],["Marc","Hannah","J\xFCrgen","Monika",""]];
 
 var bidderCardsElement=document.getElementById("bidder-cards");
 
@@ -557,16 +557,17 @@ class OnlinePlayer extends Player{
                         // TODO should be detected by the game preferably
                         if(suite==this._game.getPartnerSuite()){
                             this._trick.askingForPartnerCard=1;
-                            ////alert("\tNON_BLIND");
+                            alert("De meegevraagde "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game._getPartnerRank()]+" word gevraagd!");
                         }
                     }else
                     if(this._trick.canAskForPartnerCard<0){ // could be blind
                         // if the checkbox is still set i.e. the user didn't uncheck it
                         // he will be asking for the 
-                        if(document.getElementById("ask-partner-card-blind").checked&&
+                        // MDH@14JAN2020 BUG FIX: it's NOT ask-partner-card-blind but ask-partner-card-checkbox!!!!
+                        if(document.getElementById("ask-partner-card-checkbox").checked&&
                             (suite!=this._game.getTrumpSuite()||confirm("Wilt U de "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game.getPartnerRank()]+" (blind) vragen met een troef?"))){
                             this._trick.askingForPartnerCard=-1; // yes, asking blind!!
-                            /////alert("\tBLIND!");
+                            alert("U vraagt de meegevraagde "+DUTCH_SUITE_NAMES[this._game.getPartnerSuite()]+" "+DUTCH_RANK_NAMES[this._game._getPartnerRank()]+" blind!");
                         }
                     }else
                         /*alert("Not indicated!!!!")*/;

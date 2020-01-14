@@ -131,7 +131,8 @@ class Trick extends CardHolder{
             throw new Error("BUG: Asking for the partner card, but playing a game without trump.");
         // if the partner card is being asked for blind everyone has to play the partner card suite
         // MDH@09DEC2019: OOPS I was already using this._partnerSuite here BUT still after actually taking it out (now in again)
-        if(this._playSuite<0)this._playSuite=(this._askingForPartnerCard<0?this._partnerSuite:card.suite);
+        if(this._playSuite<0)
+            this._playSuite=(this._askingForPartnerCard<0?this._partnerSuite:card.suite);
         // ASSERT this._playSuite now definitely non-negative, so
         this._canAskForPartnerCard=0; // use the right property bro'
         // update winner
@@ -848,8 +849,10 @@ class RikkenTheGame extends PlayerGame{
         ////////////////// now passed in as argument!!!! let card=this._players[this._player].card;
         // move the card into the trick (effectively removing it from the player cards)
         this._trick.addCard(card);
-        if(card._holder!==this._trick)throw new Error("Failed to add the card to the trick!");
-        if(this._players[this._player].numberOfCards>=numberOfPlayerCards)throw new Error("Played card not removed from player hand!");
+        if(card._holder!==this._trick)
+            throw new Error("Failed to add the card to the trick!");
+        if(this._players[this._player].numberOfCards>=numberOfPlayerCards)
+            throw new Error("Played card not removed from player hand!");
         // is the trick complete?
         if(this._trick.numberOfCards==4){
             // 1. determine whether this trick contains the partner card of the highest bidder
@@ -857,13 +860,12 @@ class RikkenTheGame extends PlayerGame{
                 let partnerCardPresentInTrick=this._trick.containsCard(this.getPartnerSuite(),this.getPartnerRank());
                 ////////if(partnerCardPresentInTrick)console.log(">>>> Partner card detected! <<<<");
                 // serious error if it should have been there and it wasn't!!
-                if(this._trick.askingForPartnerCard!=0) // it was asked for
-                    if(!partnerCardPresentInTrick)
-                        throw new Error("The partner card was asked for, but was not present in the trick though.");
                 if(partnerCardPresentInTrick){
                     // if the partners are now known yet (in a regular rik situation then)
                     if(!this._arePartnersKnown)this._tellPlayersWhoTheirPartnerIs();
-                }
+                }else // partner card NOT present in trick (shouldn't happen though)
+                if(this._trick.askingForPartnerCard!=0) // but it was asked for!!!!!
+                    throw new Error("The partner card was asked for, but was not present in the trick though.");
             }
             /* replacing:
             // NOTE if this._trick.askingForPartnerCard is not zero, it should!!!
