@@ -878,9 +878,10 @@ class RikkenTheGame extends PlayerGame{
                 // MDH@18JAN2020: if playing 'schoppen vrouw en laatste slag' check whether the queen of spades is present
                 if(this._highestBid===BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW){
                     if(this._trick.containsCard(SUITE_SPADE,RANK_QUEEN)){
-                        console.log("Schoppen vrouw is opgehaald, we verhogen het hoogste bod ter indicatie hiervan.");
                         this._highestBid=BID_LAATSTE_SLAG_EN_SCHOPPEN_VROUW_OPGEHAALD;
-                    }
+                        console.log("Schoppen vrouw is opgehaald, we verhogen het hoogste bod ter indicatie hiervan.");
+                    }else
+                        console.log("Schoppen vrouw niet opgehaald!");
                 }           
             }
             /* replacing:

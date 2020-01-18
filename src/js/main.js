@@ -587,7 +587,7 @@ class OnlinePlayer extends Player{
                 }else{
                     // when not allowed to play spades (on 'schoppen vrouw en laatste slag')
                     if(suite===SUITE_SPADE){
-                        if(!this._trick.firstPlayerCanPlaySpades&&this.getNumberOfCardsWithSuite(SUITE_SPADE)<this.numberOfCards){
+                        if(!this._trick._firstPlayerCanPlaySpades&&this.getNumberOfCardsWithSuite(SUITE_SPADE)<this.numberOfCards){
                             alert("Uitkomen met schoppen is pas toegestaan zodra de schoppen vrouw opgehaald is of als U niet anders kan.");
                             return;
                         }
